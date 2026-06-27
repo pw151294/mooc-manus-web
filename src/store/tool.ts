@@ -1,5 +1,12 @@
 import { create } from 'zustand';
-import type { ToolProviderDTO, ToolFunctionDTO } from '@/types/tool';
+import type {
+  ToolProviderDTO,
+  ToolFunctionDTO,
+  ToolProviderCreateRequest,
+  ToolProviderUpdateRequest,
+  ToolFunctionCreateRequest,
+  ToolFunctionUpdateRequest,
+} from '@/types/tool';
 import * as toolApi from '@/api/modules/tool';
 
 interface ToolState {
@@ -12,12 +19,12 @@ interface ToolState {
   fetchFunctions: (providerId?: string) => Promise<void>;
   setSelectedProviderId: (id: string | null) => void;
 
-  createProvider: (data: unknown) => Promise<void>;
-  updateProvider: (id: string, data: unknown) => Promise<void>;
+  createProvider: (data: ToolProviderCreateRequest) => Promise<void>;
+  updateProvider: (id: string, data: ToolProviderUpdateRequest) => Promise<void>;
   deleteProvider: (id: string) => Promise<void>;
 
-  createFunction: (data: unknown) => Promise<void>;
-  updateFunction: (id: string, data: unknown) => Promise<void>;
+  createFunction: (data: ToolFunctionCreateRequest) => Promise<void>;
+  updateFunction: (id: string, data: ToolFunctionUpdateRequest) => Promise<void>;
   deleteFunction: (id: string) => Promise<void>;
 }
 

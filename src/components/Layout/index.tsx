@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { Layout as AntLayout, Menu } from 'antd';
+import { App as AntdApp, Layout as AntLayout, Menu } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   MessageOutlined,
@@ -42,26 +42,28 @@ const Layout: FC = () => {
   ];
 
   return (
-    <AntLayout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-        <div style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>Mooc Manus</div>
-      </Header>
-      <AntLayout>
-        <Sider width={200} theme="light">
-          <Menu
-            mode="inline"
-            selectedKeys={[location.pathname]}
-            defaultOpenKeys={['/tools']}
-            items={menuItems}
-            onClick={({ key }) => navigate(key)}
-            style={{ height: '100%', borderRight: 0 }}
-          />
-        </Sider>
-        <Content style={{ padding: '24px', background: '#f0f2f5' }}>
-          <Outlet />
-        </Content>
+    <AntdApp>
+      <AntLayout style={{ minHeight: '100vh' }}>
+        <Header style={{ display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+          <div style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>Mooc Manus</div>
+        </Header>
+        <AntLayout>
+          <Sider width={200} theme="light">
+            <Menu
+              mode="inline"
+              selectedKeys={[location.pathname]}
+              defaultOpenKeys={['/tools']}
+              items={menuItems}
+              onClick={({ key }) => navigate(key)}
+              style={{ height: '100%', borderRight: 0 }}
+            />
+          </Sider>
+          <Content style={{ padding: '24px', background: '#f0f2f5' }}>
+            <Outlet />
+          </Content>
+        </AntLayout>
       </AntLayout>
-    </AntLayout>
+    </AntdApp>
   );
 };
 

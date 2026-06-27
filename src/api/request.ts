@@ -1,7 +1,32 @@
 // src/api/request.ts
 import axios from 'axios';
-import type { AxiosError, AxiosResponse } from 'axios';
+import type { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import { message } from 'antd';
+
+// 自定义Axios实例类型,重写响应类型为 T(而非 AxiosResponse<T>)
+// 原因: 响应拦截器中直接返回 response.data,因此调用方应直接收到数据
+interface CustomAxiosInstance extends Omit<
+  AxiosInstance,
+  'get' | 'post' | 'put' | 'delete' | 'patch'
+> {
+  get<T = unknown>(url: string, config?: Parameters<AxiosInstance['get']>[1]): Promise<T>;
+  post<T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: Parameters<AxiosInstance['post']>[2]
+  ): Promise<T>;
+  put<T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: Parameters<AxiosInstance['put']>[2]
+  ): Promise<T>;
+  delete<T = unknown>(url: string, config?: Parameters<AxiosInstance['delete']>[1]): Promise<T>;
+  patch<T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: Parameters<AxiosInstance['patch']>[2]
+  ): Promise<T>;
+}
 
 // 创建Axios实例
 const request = axios.create({
@@ -10,7 +35,7 @@ const request = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-});
+}) as CustomAxiosInstance;
 
 // 请求拦截器
 request.interceptors.request.use(
