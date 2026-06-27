@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type { FC } from 'react';
 import { Table, Tag, Progress, Button, Space, Popconfirm, message, Tooltip } from 'antd';
 import type { TableProps } from 'antd';
-import { ReloadOutlined, StopOutlined, DeleteOutlined } from '@ant-design/icons';
+import { ReloadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useSkillStore } from '@/store/skill';
 import type { SkillImportTaskDTO } from '@/types/skill';
 
@@ -11,12 +11,6 @@ const statusMap: Record<SkillImportTaskDTO['status'], { color: string; label: st
   running: { color: 'processing', label: '进行中' },
   success: { color: 'success', label: '成功' },
   failed: { color: 'error', label: '失败' },
-};
-
-const sourceTypeMap: Record<SkillImportTaskDTO['source_type'], string> = {
-  git: 'Git 仓库',
-  zip: 'ZIP 包',
-  url: 'URL',
 };
 
 const ImportTasks: FC = () => {
@@ -37,11 +31,10 @@ const ImportTasks: FC = () => {
     };
   }, [fetchImportTasks, unsubscribeAllImportTasks]);
 
-  // 自动订阅所有进行中的任务
   useEffect(() => {
     importTasks.forEach((task) => {
       if (task.status === 'pending' || task.status === 'running') {
-        subscribeImportTask(task.id);
+        subscribeImportTask(task.taskId);
       }
     });
   }, [importTasks, subscribeImportTask]);
@@ -66,20 +59,13 @@ const ImportTasks: FC = () => {
 
   const columns: TableProps<SkillImportTaskDTO>['columns'] = [
     {
-      title: '来源类型',
-      dataIndex: 'source_type',
-      key: 'source_type',
-      width: 110,
-      render: (type: SkillImportTaskDTO['source_type']) => <Tag>{sourceTypeMap[type] || type}</Tag>,
-    },
-    {
-      title: '来源 URL',
-      dataIndex: 'source_url',
-      key: 'source_url',
+      title: '文件名',
+      dataIndex: 'fileName',
+      key: 'fileName',
       ellipsis: true,
-      render: (url: string) => (
-        <Tooltip title={url}>
-          <span>{url}</span>
+      render: (name: string) => (
+        <Tooltip title={name}>
+          <span>{name || '-'}</span>
         </Tooltip>
       ),
     },
@@ -107,20 +93,20 @@ const ImportTasks: FC = () => {
       },
     },
     {
-      title: '消息',
-      dataIndex: 'message',
-      key: 'message',
+      title: '阶段',
+      dataIndex: 'stage',
+      key: 'stage',
       ellipsis: true,
-      render: (msg: string) => (
-        <Tooltip title={msg}>
-          <span>{msg || '-'}</span>
+      render: (stage: string) => (
+        <Tooltip title={stage}>
+          <span>{stage || '-'}</span>
         </Tooltip>
       ),
     },
     {
       title: '创建时间',
-      dataIndex: 'created_at',
-      key: 'created_at',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 180,
     },
     {
@@ -135,11 +121,11 @@ const ImportTasks: FC = () => {
               <Popconfirm
                 title="确认取消"
                 description="确定要取消该任务吗?"
-                onConfirm={() => handleCancel(record.id)}
+                onConfirm={() => handleCancel(record.taskId)}
                 okText="确认"
                 cancelText="取消"
               >
-                <Button type="link" size="small" icon={<StopOutlined />}>
+                <Button type="link" size="small" icon={<DeleteOutlined />}>
                   取消
                 </Button>
               </Popconfirm>
@@ -147,7 +133,7 @@ const ImportTasks: FC = () => {
               <Popconfirm
                 title="确认删除"
                 description="确定要删除该任务记录吗?"
-                onConfirm={() => handleDelete(record.id)}
+                onConfirm={() => handleDelete(record.taskId)}
                 okText="确认"
                 cancelText="取消"
               >
@@ -170,7 +156,7 @@ const ImportTasks: FC = () => {
         </Button>
       </div>
       <Table
-        rowKey="id"
+        rowKey="taskId"
         loading={taskLoading}
         columns={columns}
         dataSource={importTasks}

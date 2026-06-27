@@ -1,4 +1,5 @@
 import { Card, Tag, Button, Popconfirm, Space } from 'antd';
+
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ToolProviderDTO } from '@/types/tool';
 
@@ -12,7 +13,7 @@ export default function ProviderCard({ provider, onEdit, onDelete }: ProviderCar
   return (
     <Card
       size="small"
-      title={provider.name}
+      title={provider.providerName}
       extra={
         <Space>
           <Button
@@ -24,7 +25,7 @@ export default function ProviderCard({ provider, onEdit, onDelete }: ProviderCar
           <Popconfirm
             title="确认删除"
             description="确定要删除该供应商吗?"
-            onConfirm={() => onDelete(provider.id)}
+            onConfirm={() => onDelete(provider.providerId)}
             okText="确认"
             cancelText="取消"
           >
@@ -34,12 +35,9 @@ export default function ProviderCard({ provider, onEdit, onDelete }: ProviderCar
       }
     >
       <div style={{ marginBottom: '8px' }}>
-        <Tag color={provider.status === 'active' ? 'green' : 'default'}>
-          {provider.status === 'active' ? '激活' : '未激活'}
-        </Tag>
-        <Tag>{provider.provider_type}</Tag>
+        <Tag>{provider.providerType}</Tag>
       </div>
-      <div style={{ color: '#666', fontSize: '12px' }}>{provider.description}</div>
+      <div style={{ color: '#666', fontSize: '12px' }}>{provider.providerDesc}</div>
     </Card>
   );
 }

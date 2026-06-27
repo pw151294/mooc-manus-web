@@ -36,7 +36,7 @@ const SkillPage: FC = () => {
 
   const handleView = (skill: SkillDTO) => {
     setCurrentSkill(skill);
-    setSelectedSkillId(skill.id);
+    setSelectedSkillId(skill.skillId);
     setDetailOpen(true);
   };
 
@@ -48,10 +48,10 @@ const SkillPage: FC = () => {
   const handleToggleStatus = async (skill: SkillDTO) => {
     try {
       if (skill.status === 'online') {
-        await offlineSkill(skill.id);
+        await offlineSkill(skill.skillId);
         message.success('已下线');
       } else {
-        await onlineSkill(skill.id);
+        await onlineSkill(skill.skillId);
         message.success('已上线');
       }
     } catch {
@@ -73,14 +73,13 @@ const SkillPage: FC = () => {
   };
 
   const handleImportCreated = () => {
-    // 切换到导入任务 Tab,查看进度
     setActiveTab('import');
   };
 
   const filteredSkills = skills.filter(
     (s) =>
-      s.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      s.description.toLowerCase().includes(searchText.toLowerCase())
+      s.skillName.toLowerCase().includes(searchText.toLowerCase()) ||
+      (s.description || '').toLowerCase().includes(searchText.toLowerCase())
   );
 
   const manageContent = (
@@ -116,7 +115,7 @@ const SkillPage: FC = () => {
           ) : (
             <Row gutter={[16, 16]}>
               {filteredSkills.map((skill) => (
-                <Col key={skill.id} xs={24} sm={12} lg={8} xl={6}>
+                <Col key={skill.skillId} xs={24} sm={12} lg={8} xl={6}>
                   <SkillCard
                     skill={skill}
                     onView={handleView}

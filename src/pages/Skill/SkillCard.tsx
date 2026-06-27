@@ -35,10 +35,9 @@ const SkillCard: FC<SkillCardProps> = ({ skill, onView, onToggleStatus, onDelete
           <Avatar
             shape="square"
             size="small"
-            src={skill.icon || undefined}
-            icon={!skill.icon ? <AppstoreOutlined /> : undefined}
+            icon={<AppstoreOutlined />}
           />
-          <span>{skill.name}</span>
+          <span>{skill.skillName}</span>
         </Space>
       }
       extra={<Tag color={statusInfo.color}>{statusInfo.label}</Tag>}
@@ -65,7 +64,7 @@ const SkillCard: FC<SkillCardProps> = ({ skill, onView, onToggleStatus, onDelete
           key="delete"
           title="确认删除"
           description="确定要删除该 Skill 吗?"
-          onConfirm={() => onDelete(skill.id)}
+          onConfirm={() => onDelete(skill.skillId)}
           okText="确认"
           cancelText="取消"
         >
@@ -91,9 +90,9 @@ const SkillCard: FC<SkillCardProps> = ({ skill, onView, onToggleStatus, onDelete
         {skill.description || '暂无描述'}
       </div>
       <div style={{ fontSize: '12px', color: '#999' }}>
-        <div>Provider: {skill.provider_name}</div>
+        <div>Provider: {skill.providerName}</div>
         <div>
-          当前版本: <Tag>{skill.current_version || '-'}</Tag>共 {skill.version_count} 个版本
+          当前版本: <Tag>{skill.latestVersion?.version || '-'}</Tag>共 {skill.versionCount} 个版本
         </div>
       </div>
     </Card>

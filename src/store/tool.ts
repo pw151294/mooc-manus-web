@@ -67,7 +67,7 @@ export const useToolStore = create<ToolState>((set, get) => ({
   },
 
   updateProvider: async (id, data) => {
-    await toolApi.updateProvider(id, { ...data, id });
+    await toolApi.updateProvider(id, data);
     await get().fetchProviders();
   },
 
@@ -82,7 +82,7 @@ export const useToolStore = create<ToolState>((set, get) => ({
   },
 
   updateFunction: async (id, data) => {
-    await toolApi.updateFunction(id, { ...data, id });
+    await toolApi.updateFunction(id, data);
     await get().fetchFunctions(get().selectedProviderId || undefined);
   },
 

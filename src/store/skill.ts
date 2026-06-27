@@ -4,10 +4,6 @@ import type {
   SkillDTO,
   SkillVersionDTO,
   SkillImportTaskDTO,
-  SkillProviderCreateRequest,
-  SkillProviderUpdateRequest,
-  SkillCreateRequest,
-  SkillUpdateRequest,
   SkillImportRequest,
   ImportProgressEvent,
 } from '@/types/skill';
@@ -15,52 +11,40 @@ import * as skillApi from '@/api/modules/skill';
 import SSEClient from '@/api/sse';
 
 interface SkillState {
-  // 数据
   providers: SkillProviderDTO[];
   skills: SkillDTO[];
   versions: SkillVersionDTO[];
   importTasks: SkillImportTaskDTO[];
 
-  // 选中状态
   selectedProviderId: string | null;
   selectedSkillId: string | null;
 
-  // 加载状态
   loading: boolean;
   versionLoading: boolean;
   taskLoading: boolean;
 
-  // SSE 客户端集合(每个任务一个连接)
   sseClients: Map<string, SSEClient>;
 
-  // Provider actions
   fetchProviders: () => Promise<void>;
-  createProvider: (data: SkillProviderCreateRequest) => Promise<void>;
-  updateProvider: (id: string, data: SkillProviderUpdateRequest) => Promise<void>;
   deleteProvider: (id: string) => Promise<void>;
   setSelectedProviderId: (id: string | null) => void;
 
-  // Skill actions
   fetchSkills: (providerId?: string) => Promise<void>;
-  createSkill: (data: SkillCreateRequest) => Promise<void>;
-  updateSkill: (id: string, data: SkillUpdateRequest) => Promise<void>;
+  updateSkill: (skillId: string, data: { skillName?: string; description?: string; status?: string }) => Promise<void>;
   deleteSkill: (id: string) => Promise<void>;
   onlineSkill: (id: string) => Promise<void>;
   offlineSkill: (id: string) => Promise<void>;
   setSelectedSkillId: (id: string | null) => void;
 
-  // Version actions
   fetchVersions: (skillId: string) => Promise<void>;
-  rollbackVersion: (id: string) => Promise<void>;
+  rollbackVersion: (skillId: string, targetVersion: string) => Promise<void>;
 
-  // Import Task actions
   fetchImportTasks: () => Promise<void>;
   createImportTask: (data: SkillImportRequest) => Promise<SkillImportTaskDTO>;
   cancelImportTask: (id: string) => Promise<void>;
   deleteImportTask: (id: string) => Promise<void>;
   updateTaskProgress: (taskId: string, event: ImportProgressEvent) => void;
 
-  // SSE actions
   subscribeImportTask: (taskId: string) => void;
   unsubscribeImportTask: (taskId: string) => void;
   unsubscribeAllImportTasks: () => void;
@@ -81,7 +65,6 @@ export const useSkillStore = create<SkillState>((set, get) => ({
 
   sseClients: new Map<string, SSEClient>(),
 
-  // Provider
   fetchProviders: async () => {
     set({ loading: true });
     try {
@@ -91,16 +74,6 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       set({ loading: false });
       throw error;
     }
-  },
-
-  createProvider: async (data) => {
-    await skillApi.createProvider(data);
-    await get().fetchProviders();
-  },
-
-  updateProvider: async (id, data) => {
-    await skillApi.updateProvider(id, { ...data, id });
-    await get().fetchProviders();
   },
 
   deleteProvider: async (id) => {
@@ -113,7 +86,6 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     get().fetchSkills(id || undefined);
   },
 
-  // Skill
   fetchSkills: async (providerId) => {
     set({ loading: true });
     try {
@@ -125,13 +97,8 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     }
   },
 
-  createSkill: async (data) => {
-    await skillApi.createSkill(data);
-    await get().fetchSkills(get().selectedProviderId || undefined);
-  },
-
-  updateSkill: async (id, data) => {
-    await skillApi.updateSkill(id, { ...data, id });
+  updateSkill: async (skillId, data) => {
+    await skillApi.updateSkill({ skillId, ...data });
     await get().fetchSkills(get().selectedProviderId || undefined);
   },
 
@@ -141,12 +108,12 @@ export const useSkillStore = create<SkillState>((set, get) => ({
   },
 
   onlineSkill: async (id) => {
-    await skillApi.onlineSkill(id);
+    await skillApi.updateSkill({ skillId: id, status: 'online' });
     await get().fetchSkills(get().selectedProviderId || undefined);
   },
 
   offlineSkill: async (id) => {
-    await skillApi.offlineSkill(id);
+    await skillApi.updateSkill({ skillId: id, status: 'offline' });
     await get().fetchSkills(get().selectedProviderId || undefined);
   },
 
@@ -154,7 +121,6 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     set({ selectedSkillId: id });
   },
 
-  // Version
   fetchVersions: async (skillId) => {
     set({ versionLoading: true });
     try {
@@ -166,15 +132,11 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     }
   },
 
-  rollbackVersion: async (id) => {
-    await skillApi.rollbackVersion(id);
-    const skillId = get().selectedSkillId;
-    if (skillId) {
-      await get().fetchVersions(skillId);
-    }
+  rollbackVersion: async (skillId, targetVersion) => {
+    await skillApi.rollbackVersion(skillId, targetVersion);
+    await get().fetchVersions(skillId);
   },
 
-  // Import Task
   fetchImportTasks: async () => {
     set({ taskLoading: true });
     try {
@@ -193,13 +155,13 @@ export const useSkillStore = create<SkillState>((set, get) => ({
   },
 
   cancelImportTask: async (id) => {
-    await skillApi.cancelImportTask(id);
+    await skillApi.deleteImportTask([id]);
     get().unsubscribeImportTask(id);
     await get().fetchImportTasks();
   },
 
   deleteImportTask: async (id) => {
-    await skillApi.deleteImportTask(id);
+    await skillApi.deleteImportTask([id]);
     get().unsubscribeImportTask(id);
     await get().fetchImportTasks();
   },
@@ -207,25 +169,21 @@ export const useSkillStore = create<SkillState>((set, get) => ({
   updateTaskProgress: (taskId, event) => {
     set((state) => ({
       importTasks: state.importTasks.map((task) =>
-        task.id === taskId
+        task.taskId === taskId
           ? {
               ...task,
               status: (event.status as SkillImportTaskDTO['status']) || task.status,
               progress: event.progress ?? task.progress,
-              message: event.message ?? task.message,
-              updated_at: event.timestamp || task.updated_at,
+              stage: event.stage || event.errorMessage || task.stage,
             }
           : task
       ),
     }));
   },
 
-  // SSE
   subscribeImportTask: (taskId) => {
     const { sseClients } = get();
-    if (sseClients.has(taskId)) {
-      return;
-    }
+    if (sseClients.has(taskId)) return;
     const client = new SSEClient();
     const url = skillApi.buildImportProgressUrl(taskId);
     try {
@@ -237,12 +195,8 @@ export const useSkillStore = create<SkillState>((set, get) => ({
             get().unsubscribeImportTask(taskId);
           }
         },
-        onError: () => {
-          get().unsubscribeImportTask(taskId);
-        },
-        onComplete: () => {
-          get().unsubscribeImportTask(taskId);
-        },
+        onError: () => { get().unsubscribeImportTask(taskId); },
+        onComplete: () => { get().unsubscribeImportTask(taskId); },
       });
       sseClients.set(taskId, client);
       set({ sseClients: new Map(sseClients) });

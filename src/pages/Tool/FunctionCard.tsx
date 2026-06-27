@@ -12,14 +12,14 @@ export default function FunctionCard({ function: func, onEdit, onDelete }: Funct
   return (
     <Card
       size="small"
-      title={func.name}
+      title={func.functionName}
       extra={
         <Space>
           <Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(func)} />
           <Popconfirm
             title="确认删除"
             description="确定要删除该函数吗?"
-            onConfirm={() => onDelete(func.id)}
+            onConfirm={() => onDelete(func.functionId)}
             okText="确认"
             cancelText="取消"
           >
@@ -29,10 +29,9 @@ export default function FunctionCard({ function: func, onEdit, onDelete }: Funct
       }
     >
       <div style={{ marginBottom: '8px' }}>
-        <Tag color={func.enabled ? 'green' : 'default'}>{func.enabled ? '已启用' : '未启用'}</Tag>
-        <Tag color="blue">{func.provider_name}</Tag>
+        <Tag color="blue">{func.providerId}</Tag>
       </div>
-      <div style={{ color: '#666', fontSize: '12px' }}>{func.description}</div>
+      <div style={{ color: '#666', fontSize: '12px' }}>{func.functionDesc}</div>
     </Card>
   );
 }

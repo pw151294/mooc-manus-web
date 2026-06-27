@@ -9,19 +9,19 @@ import type { ChatRequest } from '@/types/agent';
 export const buildChatUrl = (request: ChatRequest): string => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
   const params = new URLSearchParams();
-  params.set('app_config_id', request.app_config_id);
+  params.set('appConfigId', request.appConfigId);
   params.set('query', request.query);
-  if (request.system_prompt) {
-    params.set('system_prompt', request.system_prompt);
+  if (request.systemPrompt) {
+    params.set('systemPrompt', request.systemPrompt);
   }
-  if (request.conversation_id) {
-    params.set('conversation_id', request.conversation_id);
+  if (request.conversationId) {
+    params.set('conversationId', request.conversationId);
   }
-  if (request.function_ids?.length) {
-    params.set('function_ids', JSON.stringify(request.function_ids));
+  if (request.functionIds?.length) {
+    params.set('functionIds', JSON.stringify(request.functionIds));
   }
-  if (request.skill_refs?.length) {
-    params.set('skill_refs', JSON.stringify(request.skill_refs));
+  if (request.skillRefs?.length) {
+    params.set('skillRefs', JSON.stringify(request.skillRefs));
   }
   return `${baseUrl}/api/agent/chat?${params.toString()}`;
 };

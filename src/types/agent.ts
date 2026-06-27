@@ -24,16 +24,17 @@ export interface Message {
 
 // Skill 引用（用于请求）
 export interface SkillRef {
-  skill_id: string;
+  skillId: string;
   version: string;
+  skillName?: string;
 }
 
 // 对话请求（对应后端 ChatRequest）
 export interface ChatRequest {
-  app_config_id: string; // 模型配置ID
-  function_ids: string[]; // 工具函数ID列表
-  skill_refs: SkillRef[]; // Skill 引用列表
-  system_prompt?: string; // 系统提示词
+  appConfigId: string; // 模型配置ID
+  functionIds: string[]; // 工具函数ID列表
+  skillRefs: SkillRef[]; // Skill 引用列表
+  systemPrompt?: string; // 系统提示词
   query: string; // 用户消息
-  conversation_id?: string; // 会话ID（可选，首次对话生成）
+  conversationId?: string; // 会话ID（可选，首次对话生成）
 }

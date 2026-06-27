@@ -54,8 +54,8 @@ export default function Functions() {
 
   const filteredFunctions = functions.filter(
     (f) =>
-      f.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      f.description.toLowerCase().includes(searchText.toLowerCase())
+      f.functionName.toLowerCase().includes(searchText.toLowerCase()) ||
+      (f.functionDesc ?? '').toLowerCase().includes(searchText.toLowerCase())
   );
 
   return (
@@ -69,8 +69,8 @@ export default function Functions() {
           allowClear
         >
           {providers.map((p) => (
-            <Select.Option key={p.id} value={p.id}>
-              {p.name}
+            <Select.Option key={p.providerId} value={p.providerId}>
+              {p.providerName}
             </Select.Option>
           ))}
         </Select>
@@ -89,7 +89,7 @@ export default function Functions() {
       <Spin spinning={loading}>
         <Row gutter={[16, 16]}>
           {filteredFunctions.map((func) => (
-            <Col key={func.id} xs={24} sm={12} lg={8} xl={6}>
+            <Col key={func.functionId} xs={24} sm={12} lg={8} xl={6}>
               <FunctionCard function={func} onEdit={handleEdit} onDelete={handleDelete} />
             </Col>
           ))}

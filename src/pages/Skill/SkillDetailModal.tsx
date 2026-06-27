@@ -30,26 +30,26 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
 
   useEffect(() => {
     if (skill && open) {
-      fetchVersions(skill.id);
+      fetchVersions(skill.skillId);
     }
   }, [skill, open, fetchVersions]);
 
-  const handleRollback = async (versionId: string) => {
+  const handleRollback = async (record: SkillVersionDTO) => {
     try {
-      await rollbackVersion(versionId);
+      await rollbackVersion(record.skillId, record.version);
       message.success('版本切换成功');
     } catch {
       message.error('版本切换失败');
     }
   };
 
-  const handleExport = async (versionId: string, versionName: string) => {
+  const handleExport = async (record: SkillVersionDTO) => {
     try {
-      const blob = (await skillApi.exportVersion(versionId)) as unknown as Blob;
+      const blob = (await skillApi.exportVersion(skill!.skillId, record.version)) as unknown as Blob;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `skill-${skill?.name || 'export'}-${versionName}.zip`;
+      a.download = `skill-${skill?.skillName || 'export'}-${record.version}.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -61,26 +61,21 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
   };
 
   const handleDownloadFile = (file: SkillFileDTO) => {
-    if (file.download_url) {
-      window.open(file.download_url, '_blank');
+    if (file.downloadUrl) {
+      window.open(file.downloadUrl, '_blank');
     } else {
       message.warning('文件下载链接不可用');
     }
   };
 
-  const currentVersion = versions.find((v) => v.is_current);
+  const currentVersion = versions[0];
 
   const versionColumns: TableProps<SkillVersionDTO>['columns'] = [
     {
       title: '版本',
       dataIndex: 'version',
       key: 'version',
-      render: (text: string, record) => (
-        <Space>
-          <Tag color={record.is_current ? 'blue' : 'default'}>{text}</Tag>
-          {record.is_current && <Tag color="success">当前</Tag>}
-        </Space>
-      ),
+      render: (text: string) => <Tag color="default">{text}</Tag>,
     },
     {
       title: '描述',
@@ -90,8 +85,8 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
     },
     {
       title: '创建时间',
-      dataIndex: 'created_at',
-      key: 'created_at',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 180,
     },
     {
@@ -104,8 +99,7 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
             type="link"
             size="small"
             icon={<RollbackOutlined />}
-            disabled={record.is_current}
-            onClick={() => handleRollback(record.id)}
+            onClick={() => handleRollback(record)}
           >
             切换
           </Button>
@@ -113,7 +107,7 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
             type="link"
             size="small"
             icon={<ExportOutlined />}
-            onClick={() => handleExport(record.id, record.version)}
+            onClick={() => handleExport(record)}
           >
             导出
           </Button>
@@ -158,22 +152,18 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
       children: skill ? (
         <Descriptions column={1} bordered size="small">
           <Descriptions.Item label="图标">
-            <Avatar
-              shape="square"
-              src={skill.icon || undefined}
-              icon={!skill.icon ? <AppstoreOutlined /> : undefined}
-            />
+            <Avatar shape="square" icon={<AppstoreOutlined />} />
           </Descriptions.Item>
-          <Descriptions.Item label="名称">{skill.name}</Descriptions.Item>
-          <Descriptions.Item label="Provider">{skill.provider_name}</Descriptions.Item>
+          <Descriptions.Item label="名称">{skill.skillName}</Descriptions.Item>
+          <Descriptions.Item label="Provider">{skill.providerName}</Descriptions.Item>
           <Descriptions.Item label="状态">
             <Tag color={statusMap[skill.status].color}>{statusMap[skill.status].label}</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="当前版本">{skill.current_version || '-'}</Descriptions.Item>
-          <Descriptions.Item label="版本数量">{skill.version_count}</Descriptions.Item>
+          <Descriptions.Item label="当前版本">{skill.latestVersion?.version || '-'}</Descriptions.Item>
+          <Descriptions.Item label="版本数量">{skill.versionCount}</Descriptions.Item>
           <Descriptions.Item label="描述">{skill.description || '-'}</Descriptions.Item>
-          <Descriptions.Item label="创建时间">{skill.created_at}</Descriptions.Item>
-          <Descriptions.Item label="更新时间">{skill.updated_at}</Descriptions.Item>
+          <Descriptions.Item label="创建时间">{skill.createdAt}</Descriptions.Item>
+          <Descriptions.Item label="更新时间">{skill.updatedAt}</Descriptions.Item>
         </Descriptions>
       ) : null,
     },
@@ -182,7 +172,7 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
       label: '版本列表',
       children: (
         <Table
-          rowKey="id"
+          rowKey="skillVersionId"
           size="small"
           loading={versionLoading}
           columns={versionColumns}
@@ -196,11 +186,11 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
       label: '文件列表',
       children: (
         <Table
-          rowKey="id"
+          rowKey="filename"
           size="small"
           loading={versionLoading}
           columns={fileColumns}
-          dataSource={currentVersion?.files || []}
+          dataSource={currentVersion?.skillFiles || []}
           pagination={false}
           locale={{ emptyText: '当前版本暂无文件' }}
         />
@@ -212,7 +202,7 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
     <Modal
       open={open}
       onCancel={onClose}
-      title={skill ? `Skill 详情: ${skill.name}` : 'Skill 详情'}
+      title={skill ? `Skill 详情: ${skill.skillName}` : 'Skill 详情'}
       footer={null}
       width={800}
       destroyOnHidden

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { FC } from 'react';
-import { Modal, Form, Input, Radio, Select, message } from 'antd';
+import { Modal, Form, Input, Select, message } from 'antd';
 import { useSkillStore } from '@/store/skill';
 import type { SkillImportRequest } from '@/types/skill';
 
@@ -12,7 +12,7 @@ interface ImportProviderModalProps {
 
 const ImportProviderModal: FC<ImportProviderModalProps> = ({ open, onClose, onImportCreated }) => {
   const [form] = Form.useForm<SkillImportRequest>();
-  const { providers, createImportTask, subscribeImportTask } = useSkillStore();
+  const { createImportTask, subscribeImportTask } = useSkillStore();
 
   useEffect(() => {
     if (open) {
@@ -25,10 +25,9 @@ const ImportProviderModal: FC<ImportProviderModalProps> = ({ open, onClose, onIm
       const values = await form.validateFields();
       const task = await createImportTask(values);
       message.success('已创建导入任务');
-      // 自动订阅 SSE 进度
-      if (task?.id) {
-        subscribeImportTask(task.id);
-        onImportCreated?.(task.id);
+      if (task?.taskId) {
+        subscribeImportTask(task.taskId);
+        onImportCreated?.(task.taskId);
       }
       onClose();
     } catch (error) {
@@ -49,40 +48,32 @@ const ImportProviderModal: FC<ImportProviderModalProps> = ({ open, onClose, onIm
       cancelText="取消"
       destroyOnHidden
     >
-      <Form form={form} layout="vertical" initialValues={{ source_type: 'git' }}>
+      <Form form={form} layout="vertical">
         <Form.Item
-          label="来源类型"
-          name="source_type"
-          rules={[{ required: true, message: '请选择来源类型' }]}
+          label="Provider 名称"
+          name="providerName"
+          rules={[{ required: true, message: '请输入 Provider 名称' }]}
         >
-          <Radio.Group>
-            <Radio value="git">Git 仓库</Radio>
-            <Radio value="zip">ZIP 包</Radio>
-            <Radio value="url">URL</Radio>
-          </Radio.Group>
+          <Input placeholder="例如: my-skill-provider" />
         </Form.Item>
 
         <Form.Item
-          label="来源 URL"
-          name="source_url"
-          rules={[{ required: true, message: '请输入来源 URL' }]}
+          label="仓库 URL"
+          name="repoUrl"
+          rules={[{ required: true, message: '请输入仓库 URL' }]}
         >
           <Input placeholder="例如: https://github.com/xxx/skill.git" />
         </Form.Item>
 
-        <Form.Item
-          label="目标 Provider (可选)"
-          name="provider_id"
-          help="留空则创建新 Provider,选择后则更新到已有 Provider"
-        >
-          <Select
-            placeholder="选择 Provider"
-            allowClear
-            options={providers.map((p) => ({
-              label: `${p.name} (${p.type === 'official' ? '官方' : '自定义'})`,
-              value: p.id,
-            }))}
-          />
+        <Form.Item label="认证类型" name="authType">
+          <Select allowClear placeholder="无需认证">
+            <Select.Option value="none">无</Select.Option>
+            <Select.Option value="token">Token</Select.Option>
+          </Select>
+        </Form.Item>
+
+        <Form.Item label="认证 Token" name="authToken">
+          <Input.Password placeholder="认证 Token（可选）" />
         </Form.Item>
       </Form>
     </Modal>

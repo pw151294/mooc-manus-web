@@ -11,47 +11,28 @@ interface ProviderTreeProps {
 const ProviderTree: FC<ProviderTreeProps> = ({ onImportClick }) => {
   const { providers, loading, selectedProviderId, fetchProviders, setSelectedProviderId } =
     useSkillStore();
-  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>(['official', 'custom']);
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>(['all']);
 
   useEffect(() => {
     fetchProviders();
   }, [fetchProviders]);
 
-  const treeData = useMemo(() => {
-    const officialChildren = providers
-      .filter((p) => p.type === 'official')
-      .map((p) => ({
-        title: `${p.name} (${p.skill_count})`,
-        key: p.id,
+  const treeData = useMemo(() => [
+    {
+      title: `Provider列表 (${providers.length})`,
+      key: 'all',
+      selectable: false,
+      children: providers.map((p) => ({
+        title: `${p.providerName} (${p.skillCount})`,
+        key: p.skillProviderId,
         isLeaf: true,
-      }));
-    const customChildren = providers
-      .filter((p) => p.type === 'custom')
-      .map((p) => ({
-        title: `${p.name} (${p.skill_count})`,
-        key: p.id,
-        isLeaf: true,
-      }));
-
-    return [
-      {
-        title: `官方 (${officialChildren.length})`,
-        key: 'official',
-        selectable: false,
-        children: officialChildren,
-      },
-      {
-        title: `自定义 (${customChildren.length})`,
-        key: 'custom',
-        selectable: false,
-        children: customChildren,
-      },
-    ];
-  }, [providers]);
+      })),
+    },
+  ], [providers]);
 
   const handleSelect = (keys: React.Key[]) => {
     const key = keys[0];
-    if (!key || key === 'official' || key === 'custom') {
+    if (!key || key === 'all') {
       setSelectedProviderId(null);
       return;
     }

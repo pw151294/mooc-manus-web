@@ -1,98 +1,80 @@
-// Skill Provider DTO
 export interface SkillProviderDTO {
-  id: string;
-  name: string;
-  type: 'official' | 'custom';
-  description: string;
-  status: 'active' | 'inactive';
-  skill_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-// Skill DTO
-export interface SkillDTO {
-  id: string;
-  provider_id: string;
-  provider_name: string;
-  name: string;
-  description: string;
-  icon?: string;
-  status: 'online' | 'offline' | 'draft';
-  current_version: string;
-  version_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-// Skill File DTO
-export interface SkillFileDTO {
-  id: string;
-  version_id: string;
-  filename: string;
-  size: number;
-  download_url: string;
-}
-
-// Skill Version DTO
-export interface SkillVersionDTO {
-  id: string;
-  skill_id: string;
-  version: string;
-  description: string;
-  is_current: boolean;
-  files: SkillFileDTO[];
-  created_at: string;
-}
-
-// 导入任务 DTO
-export interface SkillImportTaskDTO {
-  id: string;
-  source_type: 'git' | 'zip' | 'url';
-  source_url: string;
-  status: 'pending' | 'running' | 'success' | 'failed';
-  progress: number; // 0-100
-  message: string;
-  created_at: string;
-  updated_at: string;
-}
-
-// SSE 导入进度事件
-export interface ImportProgressEvent {
-  task_id: string;
+  skillProviderId: string;
+  providerName: string;
+  providerType: string;
+  authType?: string;
+  repoUrl?: string;
   status: string;
+  skillCount: number;
+  creator?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SkillVersionDTO {
+  skillVersionId: string;
+  skillId: string;
+  skillName?: string;
+  version: string;
+  description?: string;
+  skillFiles?: SkillFileDTO[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SkillFileDTO {
+  filename: string;
+  size?: number;
+  downloadUrl?: string;
+}
+
+export interface SkillDTO {
+  skillId: string;
+  skillProviderId: string;
+  providerName?: string;
+  skillName: string;
+  description?: string;
+  status: 'online' | 'offline' | 'draft';
+  latestVersion?: SkillVersionDTO;
+  versionCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SkillImportTaskDTO {
+  taskId: string;
+  fileName?: string;
+  status: 'pending' | 'running' | 'success' | 'failed';
+  stage?: string;
   progress: number;
-  message: string;
-  timestamp: string;
+  createdAt: string;
 }
 
-// Provider 请求
+export interface ImportProgressEvent {
+  taskId: string;
+  status: string;
+  stage?: string;
+  progress: number;
+  errorMessage?: string;
+}
+
 export interface SkillProviderCreateRequest {
-  name: string;
-  type: 'official' | 'custom';
-  description: string;
-  status?: 'active' | 'inactive';
-}
-
-export interface SkillProviderUpdateRequest extends SkillProviderCreateRequest {
-  id: string;
-}
-
-// Skill 请求
-export interface SkillCreateRequest {
-  provider_id: string;
-  name: string;
-  description: string;
-  icon?: string;
-}
-
-export interface SkillUpdateRequest extends SkillCreateRequest {
-  id: string;
-  status?: 'online' | 'offline' | 'draft';
+  providerName: string;
+  repoUrl: string;
+  authType?: string;
+  authToken?: string;
 }
 
 export interface SkillImportRequest {
-  source_type: 'git' | 'zip' | 'url';
-  source_url: string;
-  provider_id?: string;
+  providerName: string;
+  repoUrl: string;
+  authType?: string;
+  authToken?: string;
+}
+
+export interface SkillUpdateRequest {
+  skillId: string;
+  skillName?: string;
+  description?: string;
+  status?: string;
 }

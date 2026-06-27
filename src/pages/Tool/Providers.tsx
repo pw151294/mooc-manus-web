@@ -44,8 +44,8 @@ export default function Providers() {
 
   const filteredProviders = providers.filter(
     (p) =>
-      p.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchText.toLowerCase())
+      p.providerName.toLowerCase().includes(searchText.toLowerCase()) ||
+      p.providerDesc.toLowerCase().includes(searchText.toLowerCase())
   );
 
   return (
@@ -66,7 +66,7 @@ export default function Providers() {
       <Spin spinning={loading}>
         <Row gutter={[16, 16]}>
           {filteredProviders.map((provider) => (
-            <Col key={provider.id} xs={24} sm={12} lg={8} xl={6}>
+            <Col key={provider.providerId} xs={24} sm={12} lg={8} xl={6}>
               <ProviderCard provider={provider} onEdit={handleEdit} onDelete={handleDelete} />
             </Col>
           ))}

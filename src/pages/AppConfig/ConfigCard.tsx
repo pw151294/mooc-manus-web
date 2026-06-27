@@ -15,14 +15,14 @@ interface ConfigCardProps {
 const ConfigCard: FC<ConfigCardProps> = ({ config, onEdit, onDelete }) => {
   return (
     <Card
-      title={config.model_name}
+      title={config.modelName}
       extra={
         <Space>
           <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(config)} />
           <Popconfirm
             title="确认删除"
             description="确定要删除此配置吗?"
-            onConfirm={() => onDelete(config.id)}
+            onConfirm={() => onDelete(config.appConfigId)}
             okText="确认"
             cancelText="取消"
           >
@@ -33,12 +33,9 @@ const ConfigCard: FC<ConfigCardProps> = ({ config, onEdit, onDelete }) => {
       styles={{ body: { paddingTop: 8 } }}
     >
       <Descriptions column={1} size="small">
-        <Descriptions.Item label="Base URL">{config.base_url}</Descriptions.Item>
+        <Descriptions.Item label="Base URL">{config.baseUrl}</Descriptions.Item>
         <Descriptions.Item label="Temperature">{config.temperature}</Descriptions.Item>
-        <Descriptions.Item label="Max Tokens">{config.max_tokens}</Descriptions.Item>
-        <Descriptions.Item label="Top P">{config.top_p}</Descriptions.Item>
-        <Descriptions.Item label="Timeout">{config.timeout}ms</Descriptions.Item>
-        <Descriptions.Item label="Stream">{config.stream ? '是' : '否'}</Descriptions.Item>
+        <Descriptions.Item label="Max Tokens">{config.maxTokens}</Descriptions.Item>
       </Descriptions>
     </Card>
   );

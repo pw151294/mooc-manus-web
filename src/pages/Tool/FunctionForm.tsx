@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Modal, Form, Input, Select, Switch, message } from 'antd';
+import { Modal, Form, Input, Select, message } from 'antd';
 import { useToolStore } from '@/store/tool';
 import type { ToolFunctionDTO } from '@/types/tool';
 
@@ -16,7 +16,7 @@ export default function FunctionForm({ function: func, onClose }: FunctionFormPr
     if (func) {
       form.setFieldsValue({
         ...func,
-        function_schema: JSON.stringify(func.function_schema, null, 2),
+        parameters: JSON.stringify(func.properties, null, 2),
       });
     } else {
       form.resetFields();
@@ -28,10 +28,10 @@ export default function FunctionForm({ function: func, onClose }: FunctionFormPr
       const values = await form.validateFields();
       const data = {
         ...values,
-        function_schema: JSON.parse(values.function_schema),
+        parameters: JSON.parse(values.parameters),
       };
       if (func) {
-        await updateFunction(func.id, data);
+        await updateFunction(func.functionId, data);
         message.success('更新成功');
       } else {
         await createFunction(data);
@@ -60,13 +60,13 @@ export default function FunctionForm({ function: func, onClose }: FunctionFormPr
       <Form form={form} layout="vertical">
         <Form.Item
           label="供应商"
-          name="provider_id"
+          name="providerId"
           rules={[{ required: true, message: '请选择供应商' }]}
         >
           <Select placeholder="请选择供应商" disabled={!!func}>
             {providers.map((p) => (
-              <Select.Option key={p.id} value={p.id}>
-                {p.name}
+              <Select.Option key={p.providerId} value={p.providerId}>
+                {p.providerName}
               </Select.Option>
             ))}
           </Select>
@@ -74,7 +74,7 @@ export default function FunctionForm({ function: func, onClose }: FunctionFormPr
 
         <Form.Item
           label="函数名称"
-          name="name"
+          name="functionName"
           rules={[{ required: true, message: '请输入函数名称' }]}
         >
           <Input placeholder="请输入函数名称" />
@@ -82,7 +82,7 @@ export default function FunctionForm({ function: func, onClose }: FunctionFormPr
 
         <Form.Item
           label="描述"
-          name="description"
+          name="functionDesc"
           rules={[{ required: true, message: '请输入描述' }]}
         >
           <Input.TextArea rows={2} placeholder="请输入描述" />
@@ -90,14 +90,10 @@ export default function FunctionForm({ function: func, onClose }: FunctionFormPr
 
         <Form.Item
           label="函数 Schema (JSON)"
-          name="function_schema"
+          name="parameters"
           rules={[{ required: true, message: '请输入函数 Schema' }]}
         >
           <Input.TextArea rows={6} placeholder='{"type": "object", "properties": {}}' />
-        </Form.Item>
-
-        <Form.Item label="启用" name="enabled" valuePropName="checked" initialValue={true}>
-          <Switch />
         </Form.Item>
       </Form>
     </Modal>

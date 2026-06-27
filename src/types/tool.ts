@@ -1,50 +1,39 @@
-// Tool Provider DTO
 export interface ToolProviderDTO {
-  id: string;
-  name: string;
-  description: string;
-  provider_type: string; // 例如: "mcp", "builtin", "custom"
-  status: 'active' | 'inactive';
-  config?: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
+  providerId: string;
+  providerName: string;
+  providerDesc: string;
+  providerType: string;
+  providerUrl?: string;
+  providerTransport?: string;
 }
 
-// Tool Function DTO
 export interface ToolFunctionDTO {
-  id: string;
-  provider_id: string;
-  provider_name: string; // 冗余字段,方便显示
-  name: string;
-  description: string;
-  function_schema: Record<string, unknown>; // JSON Schema
-  enabled: boolean;
-  created_at: string;
-  updated_at: string;
+  functionId: string;
+  providerId: string;
+  functionName: string;
+  functionDesc: string;
+  properties?: Record<string, unknown>;
 }
 
-// Provider 请求
 export interface ToolProviderCreateRequest {
-  name: string;
-  description: string;
-  provider_type: string;
-  status?: 'active' | 'inactive';
-  config?: Record<string, unknown>;
+  providerName: string;
+  providerDesc?: string;
+  providerType: string;
+  providerUrl?: string;
+  providerTransport?: string;
 }
 
 export interface ToolProviderUpdateRequest extends ToolProviderCreateRequest {
-  id: string;
+  providerId: string;
 }
 
-// Function 请求
 export interface ToolFunctionCreateRequest {
-  provider_id: string;
-  name: string;
-  description: string;
-  function_schema: Record<string, unknown>;
-  enabled?: boolean;
+  providerId: string;
+  functionName: string;
+  functionDesc?: string;
+  parameters?: Record<string, unknown>;
 }
 
 export interface ToolFunctionUpdateRequest extends ToolFunctionCreateRequest {
-  id: string;
+  functionId: string;
 }

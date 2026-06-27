@@ -51,8 +51,8 @@ const AppConfig: FC = () => {
 
   const filteredConfigs = configs.filter(
     (config) =>
-      config.model_name.toLowerCase().includes(searchText.toLowerCase()) ||
-      config.base_url.toLowerCase().includes(searchText.toLowerCase())
+      config.modelName.toLowerCase().includes(searchText.toLowerCase()) ||
+      config.baseUrl.toLowerCase().includes(searchText.toLowerCase())
   );
 
   return (
@@ -78,7 +78,7 @@ const AppConfig: FC = () => {
         ) : (
           <Row gutter={[16, 16]}>
             {filteredConfigs.map((config) => (
-              <Col key={config.id} xs={24} sm={12} lg={8} xl={6}>
+              <Col key={config.appConfigId} xs={24} sm={12} lg={8} xl={6}>
                 <ConfigCard config={config} onEdit={handleEdit} onDelete={handleDelete} />
               </Col>
             ))}

@@ -63,12 +63,12 @@ const ConfigPanel: FC = () => {
   }, []);
 
   const handleConfigChange = (id: string) => {
-    const config = configs.find((c) => c.id === id) || null;
+    const config = configs.find((c) => c.appConfigId === id) || null;
     setSelectedConfig(config);
   };
 
   const handleToolsChange = (ids: string[]) => {
-    const tools = functions.filter((f) => ids.includes(f.id));
+    const tools = functions.filter((f) => ids.includes(f.functionId));
     setSelectedTools(tools);
   };
 
@@ -108,6 +108,7 @@ const ConfigPanel: FC = () => {
 
   const selectedSkillIds = selectedSkills.map((s) => s.skill.id);
 
+
   return (
     <Card
       title={
@@ -125,11 +126,11 @@ const ConfigPanel: FC = () => {
           <Select
             placeholder="请选择模型配置"
             style={{ width: '100%', marginTop: 8 }}
-            value={selectedConfig?.id}
+            value={selectedConfig?.appConfigId}
             onChange={handleConfigChange}
             options={configs.map((c) => ({
-              label: c.model_name,
-              value: c.id,
+              label: c.modelName,
+              value: c.appConfigId,
             }))}
             notFoundContent={<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无配置" />}
           />
@@ -146,14 +147,14 @@ const ConfigPanel: FC = () => {
             ) : (
               <Checkbox.Group
                 style={{ display: 'flex', flexDirection: 'column' }}
-                value={selectedTools.map((t) => t.id)}
+                value={selectedTools.map((t) => t.functionId)}
                 onChange={(vals) => handleToolsChange(vals as string[])}
               >
                 {functions.map((f) => (
-                  <Checkbox key={f.id} value={f.id} style={{ marginLeft: 0 }}>
+                  <Checkbox key={f.functionId} value={f.functionId} style={{ marginLeft: 0 }}>
                     <span style={{ fontSize: 12 }}>
-                      {f.name}
-                      <span style={{ color: '#999' }}> ({f.provider_name})</span>
+                      {f.functionName}
+                      <span style={{ color: '#999' }}> ({f.providerId})</span>
                     </span>
                   </Checkbox>
                 ))}

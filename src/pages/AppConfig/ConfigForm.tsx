@@ -3,7 +3,7 @@
  */
 import type { FC } from 'react';
 import { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Switch, message } from 'antd';
+import { Modal, Form, Input, InputNumber, message } from 'antd';
 import { useAppConfigStore } from '@/store/appConfig';
 import type { AppConfigDTO } from '@/types/appConfig';
 
@@ -33,7 +33,7 @@ const ConfigForm: FC<ConfigFormProps> = ({ visible, config, onClose, onSuccess }
       const values = await form.validateFields();
 
       if (config) {
-        await updateConfig(config.id, { ...values, appConfigId: config.id });
+        await updateConfig(config.appConfigId, { ...values, appConfigId: config.appConfigId });
       } else {
         await createConfig(values);
       }
@@ -63,15 +63,12 @@ const ConfigForm: FC<ConfigFormProps> = ({ visible, config, onClose, onSuccess }
         layout="vertical"
         initialValues={{
           temperature: 0.7,
-          max_tokens: 2000,
-          top_p: 0.9,
-          timeout: 30000,
-          stream: false,
+          maxTokens: 2000,
         }}
       >
         <Form.Item
           label="模型名称"
-          name="model_name"
+          name="modelName"
           rules={[{ required: true, message: '请输入模型名称' }]}
         >
           <Input placeholder="例如: gpt-4" />
@@ -79,7 +76,7 @@ const ConfigForm: FC<ConfigFormProps> = ({ visible, config, onClose, onSuccess }
 
         <Form.Item
           label="Base URL"
-          name="base_url"
+          name="baseUrl"
           rules={[
             { required: true, message: '请输入 Base URL' },
             { type: 'url', message: '请输入有效的 URL' },
@@ -90,58 +87,30 @@ const ConfigForm: FC<ConfigFormProps> = ({ visible, config, onClose, onSuccess }
 
         <Form.Item
           label="API Key"
-          name="api_key"
+          name="apiKey"
           rules={[{ required: true, message: '请输入 API Key' }]}
         >
           <Input.Password placeholder="请输入 API Key" />
         </Form.Item>
 
-        <Form.Item
-          label="Temperature"
-          name="temperature"
-          rules={[
-            { required: true, message: '请输入 Temperature' },
-            { type: 'number', min: 0, max: 1, message: 'Temperature 必须在 0-1 之间' },
-          ]}
-        >
+        <Form.Item label="Temperature" name="temperature">
           <InputNumber min={0} max={1} step={0.1} style={{ width: '100%' }} />
         </Form.Item>
 
-        <Form.Item
-          label="Max Tokens"
-          name="max_tokens"
-          rules={[
-            { required: true, message: '请输入 Max Tokens' },
-            { type: 'number', min: 1, message: 'Max Tokens 必须大于 0' },
-          ]}
-        >
+        <Form.Item label="Max Tokens" name="maxTokens">
           <InputNumber min={1} style={{ width: '100%' }} />
         </Form.Item>
 
-        <Form.Item
-          label="Top P"
-          name="top_p"
-          rules={[
-            { required: true, message: '请输入 Top P' },
-            { type: 'number', min: 0, max: 1, message: 'Top P 必须在 0-1 之间' },
-          ]}
-        >
-          <InputNumber min={0} max={1} step={0.1} style={{ width: '100%' }} />
-        </Form.Item>
-
-        <Form.Item
-          label="Timeout (ms)"
-          name="timeout"
-          rules={[
-            { required: true, message: '请输入 Timeout' },
-            { type: 'number', min: 1, message: 'Timeout 必须大于 0' },
-          ]}
-        >
+        <Form.Item label="Max Iterations" name="maxIterations">
           <InputNumber min={1} style={{ width: '100%' }} />
         </Form.Item>
 
-        <Form.Item label="Stream" name="stream" valuePropName="checked">
-          <Switch />
+        <Form.Item label="Max Retries" name="maxRetries">
+          <InputNumber min={0} style={{ width: '100%' }} />
+        </Form.Item>
+
+        <Form.Item label="Max Search Results" name="maxSearchResults">
+          <InputNumber min={1} style={{ width: '100%' }} />
         </Form.Item>
       </Form>
     </Modal>

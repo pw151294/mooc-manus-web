@@ -75,15 +75,15 @@ const AgentPage: FC = () => {
 
     // 构造请求并订阅
     const url = buildChatUrl({
-      app_config_id: selectedConfig.id,
-      function_ids: selectedTools.map((t) => t.id),
-      skill_refs: selectedSkills.map((s) => ({
-        skill_id: s.skill.id,
+      appConfigId: selectedConfig.appConfigId,
+      functionIds: selectedTools.map((t) => t.functionId),
+      skillRefs: selectedSkills.map((s) => ({
+        skillId: s.skill.skillId,
         version: s.version,
       })),
-      system_prompt: systemPrompt || undefined,
+      systemPrompt: systemPrompt || undefined,
       query,
-      conversation_id: ensureConversationId(),
+      conversationId: ensureConversationId(),
     });
 
     // 关闭旧连接

@@ -24,7 +24,7 @@ export default function ProviderForm({ provider, onClose }: ProviderFormProps) {
     try {
       const values = await form.validateFields();
       if (provider) {
-        await updateProvider(provider.id, values);
+        await updateProvider(provider.providerId, values);
         message.success('更新成功');
       } else {
         await createProvider(values);
@@ -48,7 +48,7 @@ export default function ProviderForm({ provider, onClose }: ProviderFormProps) {
       <Form form={form} layout="vertical">
         <Form.Item
           label="供应商名称"
-          name="name"
+          name="providerName"
           rules={[{ required: true, message: '请输入供应商名称' }]}
         >
           <Input placeholder="请输入供应商名称" />
@@ -56,7 +56,7 @@ export default function ProviderForm({ provider, onClose }: ProviderFormProps) {
 
         <Form.Item
           label="供应商类型"
-          name="provider_type"
+          name="providerType"
           rules={[{ required: true, message: '请选择供应商类型' }]}
         >
           <Select placeholder="请选择供应商类型">
@@ -66,16 +66,9 @@ export default function ProviderForm({ provider, onClose }: ProviderFormProps) {
           </Select>
         </Form.Item>
 
-        <Form.Item label="状态" name="status" initialValue="active">
-          <Select>
-            <Select.Option value="active">激活</Select.Option>
-            <Select.Option value="inactive">未激活</Select.Option>
-          </Select>
-        </Form.Item>
-
         <Form.Item
           label="描述"
-          name="description"
+          name="providerDesc"
           rules={[{ required: true, message: '请输入描述' }]}
         >
           <Input.TextArea rows={3} placeholder="请输入描述" />
