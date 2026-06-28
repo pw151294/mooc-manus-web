@@ -25,7 +25,7 @@ const { TextArea } = Input;
 
 const ConfigPanel: FC = () => {
   const { configs, fetchConfigs } = useAppConfigStore();
-  const { functions, fetchFunctions } = useToolStore();
+  const { functions, fetchAllFunctions } = useToolStore();
   const { skills, fetchSkills } = useSkillStore();
 
   const {
@@ -48,7 +48,7 @@ const ConfigPanel: FC = () => {
       });
     }
     if (functions.length === 0) {
-      fetchFunctions().catch((err) => {
+      fetchAllFunctions().catch((err) => {
         const msg = err instanceof Error ? err.message : '未知错误';
         message.error(`加载工具列表失败: ${msg}`);
       });
@@ -74,20 +74,20 @@ const ConfigPanel: FC = () => {
 
   const handleSkillToggle = (skillId: string, checked: boolean) => {
     if (checked) {
-      const skill = skills.find((s) => s.id === skillId);
+      const skill = skills.find((s) => s.skillId === skillId);
       if (skill) {
         setSelectedSkills([
           ...selectedSkills,
-          { skill, version: skill.current_version || 'v1.0.0' },
+          { skill, version: skill.latestVersion?.version || 'v1.0.0' },
         ]);
       }
     } else {
-      setSelectedSkills(selectedSkills.filter((s) => s.skill.id !== skillId));
+      setSelectedSkills(selectedSkills.filter((s) => s.skill.skillId !== skillId));
     }
   };
 
   const handleSkillVersionChange = (skillId: string, version: string) => {
-    setSelectedSkills(selectedSkills.map((s) => (s.skill.id === skillId ? { ...s, version } : s)));
+    setSelectedSkills(selectedSkills.map((s) => (s.skill.skillId === skillId ? { ...s, version } : s)));
   };
 
   const handleReset = () => {
@@ -106,7 +106,7 @@ const ConfigPanel: FC = () => {
     message.success('配置已应用');
   };
 
-  const selectedSkillIds = selectedSkills.map((s) => s.skill.id);
+  const selectedSkillIds = selectedSkills.map((s) => s.skill.skillId);
 
 
   return (
@@ -173,11 +173,12 @@ const ConfigPanel: FC = () => {
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无 Skill" />
             ) : (
               skills.map((skill) => {
-                const isChecked = selectedSkillIds.includes(skill.id);
-                const currentSelected = selectedSkills.find((s) => s.skill.id === skill.id);
+                const isChecked = selectedSkillIds.includes(skill.skillId);
+                const currentSelected = selectedSkills.find((s) => s.skill.skillId === skill.skillId);
+                const defaultVersion = skill.latestVersion?.version || 'v1.0.0';
                 return (
                   <div
-                    key={skill.id}
+                    key={skill.skillId}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -186,20 +187,20 @@ const ConfigPanel: FC = () => {
                   >
                     <Checkbox
                       checked={isChecked}
-                      onChange={(e) => handleSkillToggle(skill.id, e.target.checked)}
+                      onChange={(e) => handleSkillToggle(skill.skillId, e.target.checked)}
                     >
-                      <span style={{ fontSize: 12 }}>{skill.name}</span>
+                      <span style={{ fontSize: 12 }}>{skill.skillName}</span>
                     </Checkbox>
                     {isChecked && (
                       <Select
                         size="small"
                         style={{ width: 90, marginLeft: 4 }}
                         value={currentSelected?.version}
-                        onChange={(v) => handleSkillVersionChange(skill.id, v)}
+                        onChange={(v) => handleSkillVersionChange(skill.skillId, v)}
                         options={[
                           {
-                            label: skill.current_version || 'v1.0.0',
-                            value: skill.current_version || 'v1.0.0',
+                            label: defaultVersion,
+                            value: defaultVersion,
                           },
                         ]}
                       />

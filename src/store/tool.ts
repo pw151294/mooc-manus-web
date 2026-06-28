@@ -16,7 +16,8 @@ interface ToolState {
   loading: boolean;
 
   fetchProviders: () => Promise<void>;
-  fetchFunctions: (providerId?: string) => Promise<void>;
+  fetchFunctions: (providerId: string) => Promise<void>;
+  fetchAllFunctions: () => Promise<void>;
   setSelectedProviderId: (id: string | null) => void;
 
   createProvider: (data: ToolProviderCreateRequest) => Promise<void>;
@@ -53,10 +54,35 @@ export const useToolStore = create<ToolState>((set, get) => ({
   },
 
   fetchFunctions: async (providerId) => {
+    // 后端契约：providerId 必填，禁止无参调用
+    if (!providerId) {
+      set({ functions: [] });
+      return;
+    }
     set({ loading: true });
     try {
       const functions = await toolApi.listFunctions(providerId);
       set({ functions, loading: false });
+    } catch (error) {
+      set({ loading: false });
+      throw error;
+    }
+  },
+
+  // 跨 provider 聚合：先取 provider 列表，再并发拉取各自的 function 后扁平合并
+  fetchAllFunctions: async () => {
+    set({ loading: true });
+    try {
+      const providers = await toolApi.listProviders();
+      set({ providers });
+      if (providers.length === 0) {
+        set({ functions: [], loading: false });
+        return;
+      }
+      const results = await Promise.all(
+        providers.map((p) => toolApi.listFunctions(p.providerId))
+      );
+      set({ functions: results.flat(), loading: false });
     } catch (error) {
       set({ loading: false });
       throw error;
@@ -90,16 +116,19 @@ export const useToolStore = create<ToolState>((set, get) => ({
 
   createFunction: async (data) => {
     await toolApi.createFunction(data);
-    await get().fetchFunctions(get().selectedProviderId || undefined);
+    const pid = get().selectedProviderId;
+    if (pid) await get().fetchFunctions(pid);
   },
 
   updateFunction: async (id, data) => {
     await toolApi.updateFunction(id, data);
-    await get().fetchFunctions(get().selectedProviderId || undefined);
+    const pid = get().selectedProviderId;
+    if (pid) await get().fetchFunctions(pid);
   },
 
   deleteFunction: async (id) => {
     await toolApi.deleteFunction(id);
-    await get().fetchFunctions(get().selectedProviderId || undefined);
+    const pid = get().selectedProviderId;
+    if (pid) await get().fetchFunctions(pid);
   },
 }));

@@ -17,10 +17,10 @@ export const updateProvider = (id: string, data: ToolProviderUpdateRequest) =>
 export const deleteProvider = (id: string) =>
   request.delete(`/api/tools/provider/${id}`);
 
-export const listFunctions = (providerId?: string) => {
-  const url = providerId ? `/api/tools/function/list?providerId=${providerId}` : '/api/tools/function/list';
-  return request.get<ToolFunctionDTO[]>(url);
-};
+export const listFunctions = (providerId: string) =>
+  request.get<ToolFunctionDTO[]>(
+    `/api/tools/function/list?providerId=${encodeURIComponent(providerId)}`
+  );
 
 export const createFunction = (data: ToolFunctionCreateRequest) =>
   request.post('/api/tools/function', data);
