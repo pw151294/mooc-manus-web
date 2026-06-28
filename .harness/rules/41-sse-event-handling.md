@@ -13,6 +13,7 @@ mooc-manus-web 通过 `src/api/sse.ts` 内的 `SSEClient` 类与后端建立 SSE
    - 浏览器原生 `EventSource` 不支持 POST 与自定义 header，与后端 chat 接口（POST + body）不兼容
    - 必须通过 `import SSEClient from '@/api/sse'` 复用既有客户端
    - 当前代码库未出现 `new EventSource`；新增代码不得引入
+   - ESLint 自定义规则 `no-direct-event-source`（plan 要点）当前未实现；新增前请先开 ADR 评估对 `eslint.config.js` 的影响，过渡期靠 PR review + 上述 `grep` 静态检查兜底。
 
 2. **禁止在 `src/api/sse.ts` 之外手写 SSE 帧解析**
    - 帧分隔（`\n\n` / `\r\n\r\n`）、`event:` / `data:` 字段抽取、JSON.parse 全部由 `SSEClient.dispatchFrame` 处理
