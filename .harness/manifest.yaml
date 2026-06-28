@@ -8,6 +8,7 @@ cognition:
   loadOrder:
     - rules/40-react-conventions.md
     - rules/41-sse-event-handling.md
+    - rules/42-typescript-strict.md
   playbooksIndex: playbooks/INDEX.md
   knowledgeIndex: knowledge/README.md
 
