@@ -3,25 +3,26 @@
  */
 import type { ChatRequest } from '@/types/agent';
 
-// 构造 SSE 对话 URL
-// 后端期望 POST 请求,但 EventSource 只支持 GET
-// 实际方案: 假设后端支持 GET /api/agent/chat 接口,参数序列化为 query string
-export const buildChatUrl = (request: ChatRequest): string => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-  const params = new URLSearchParams();
-  params.set('appConfigId', request.appConfigId);
-  params.set('query', request.query);
+const getBaseUrl = (): string =>
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+// 对话接口固定走 POST /api/agent/chat
+export const getChatUrl = (): string => `${getBaseUrl()}/api/agent/chat`;
+
+// 将前端请求转换为后端 ChatClientRequest 结构，字段名严格对齐
+export const buildChatPayload = (request: ChatRequest): Record<string, unknown> => {
+  const payload: Record<string, unknown> = {
+    streaming: true,
+    appConfigId: request.appConfigId,
+    query: request.query,
+    functionIds: request.functionIds ?? [],
+    skillRefs: request.skillRefs ?? [],
+  };
   if (request.systemPrompt) {
-    params.set('systemPrompt', request.systemPrompt);
+    payload.systemPrompt = request.systemPrompt;
   }
   if (request.conversationId) {
-    params.set('conversationId', request.conversationId);
+    payload.conversationId = request.conversationId;
   }
-  if (request.functionIds?.length) {
-    params.set('functionIds', JSON.stringify(request.functionIds));
-  }
-  if (request.skillRefs?.length) {
-    params.set('skillRefs', JSON.stringify(request.skillRefs));
-  }
-  return `${baseUrl}/api/agent/chat?${params.toString()}`;
+  return payload;
 };

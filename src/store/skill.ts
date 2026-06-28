@@ -187,7 +187,7 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     const client = new SSEClient();
     const url = skillApi.buildImportProgressUrl(taskId);
     try {
-      client.subscribe(url, {
+      client.subscribe({ url, method: 'GET' }, {
         onEvent: (_type, data) => {
           const event = data as unknown as ImportProgressEvent;
           get().updateTaskProgress(taskId, event);

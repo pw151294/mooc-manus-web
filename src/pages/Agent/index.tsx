@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react';
 import { message } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 import SSEClient from '@/api/sse';
-import { buildChatUrl } from '@/api/modules/agent';
+import { buildChatPayload, getChatUrl } from '@/api/modules/agent';
 import { useAgentStore } from '@/store/agent';
 import type { MessageEventData, ToolEventData, ErrorEventData, TitleEventData } from '@/types/sse';
 import ConfigPanel from './ConfigPanel';
@@ -74,7 +74,7 @@ const AgentPage: FC = () => {
     accumulatedRef.current = '';
 
     // 构造请求并订阅
-    const url = buildChatUrl({
+    const payload = buildChatPayload({
       appConfigId: selectedConfig.appConfigId,
       functionIds: selectedTools.map((t) => t.functionId),
       skillRefs: selectedSkills.map((s) => ({
@@ -92,70 +92,73 @@ const AgentPage: FC = () => {
     sseClientRef.current = sseClient;
 
     try {
-      sseClient.subscribe(url, {
-        onEvent: (type, data) => {
-          switch (type) {
-            case 'message': {
-              const msgData = data as MessageEventData;
-              accumulatedRef.current += msgData.message || '';
-              updateLastMessage(accumulatedRef.current);
-              break;
+      sseClient.subscribe(
+        { url: getChatUrl(), method: 'POST', body: payload },
+        {
+          onEvent: (type, data) => {
+            switch (type) {
+              case 'message': {
+                const msgData = data as MessageEventData;
+                accumulatedRef.current += msgData.message || '';
+                updateLastMessage(accumulatedRef.current);
+                break;
+              }
+              case 'message_end':
+                // 标记当前消息完成
+                break;
+              case 'tool_call_start': {
+                const tool = data as ToolEventData;
+                addToolCallStatus({
+                  id: tool.tool_call_id,
+                  toolName: tool.tool_name,
+                  functionName: tool.function_name,
+                  functionArgs: tool.function_args,
+                  status: 'calling',
+                });
+                break;
+              }
+              case 'tool_call_complete': {
+                const tool = data as ToolEventData;
+                updateToolCallStatus(tool.tool_call_id, {
+                  status: 'completed',
+                  result: tool.function_result,
+                });
+                break;
+              }
+              case 'tool_call_fail': {
+                const tool = data as ToolEventData;
+                updateToolCallStatus(tool.tool_call_id, {
+                  status: 'failed',
+                  result: tool.function_result,
+                });
+                break;
+              }
+              case 'error': {
+                const errData = data as ErrorEventData;
+                message.error(errData.error || '对话出错');
+                break;
+              }
+              case 'title': {
+                const titleData = data as TitleEventData;
+                console.log('会话标题:', titleData.title);
+                break;
+              }
+              case 'done':
+                stopStreaming();
+                break;
+              default:
+                break;
             }
-            case 'message_end':
-              // 标记当前消息完成
-              break;
-            case 'tool_call_start': {
-              const tool = data as ToolEventData;
-              addToolCallStatus({
-                id: tool.tool_call_id,
-                toolName: tool.tool_name,
-                functionName: tool.function_name,
-                functionArgs: tool.function_args,
-                status: 'calling',
-              });
-              break;
-            }
-            case 'tool_call_complete': {
-              const tool = data as ToolEventData;
-              updateToolCallStatus(tool.tool_call_id, {
-                status: 'completed',
-                result: tool.function_result,
-              });
-              break;
-            }
-            case 'tool_call_fail': {
-              const tool = data as ToolEventData;
-              updateToolCallStatus(tool.tool_call_id, {
-                status: 'failed',
-                result: tool.function_result,
-              });
-              break;
-            }
-            case 'error': {
-              const errData = data as ErrorEventData;
-              message.error(errData.error || '对话出错');
-              break;
-            }
-            case 'title': {
-              const titleData = data as TitleEventData;
-              console.log('会话标题:', titleData.title);
-              break;
-            }
-            case 'done':
-              stopStreaming();
-              break;
-            default:
-              break;
-          }
-        },
-        onError: () => {
-          message.error('连接中断');
-          stopStreaming();
-        },
-        onComplete: () => {
-          stopStreaming();
-        },
-      });
+          },
+          onError: () => {
+            message.error('连接中断');
+            stopStreaming();
+          },
+          onComplete: () => {
+            stopStreaming();
+          },
+        }
+      );
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : '未知错误';
       message.error(`订阅 SSE 失败: ${errMsg}`);
