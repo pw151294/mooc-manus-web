@@ -23,9 +23,11 @@ export interface SkillVersionDTO {
 }
 
 export interface SkillFileDTO {
-  filename: string;
+  path: string;
+  fileKey: string;
+  suffix?: string;
   size?: number;
-  downloadUrl?: string;
+  checksum?: string;
 }
 
 export interface SkillDTO {

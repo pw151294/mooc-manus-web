@@ -22,8 +22,10 @@ const statusMap: Record<SkillDTO['status'], { color: string; label: string }> = 
   draft: { color: 'orange', label: '草稿' },
 };
 
+const DEFAULT_STATUS_INFO = { color: 'default', label: '未知状态' };
+
 const SkillCard: FC<SkillCardProps> = ({ skill, onView, onToggleStatus, onDelete }) => {
-  const statusInfo = statusMap[skill.status];
+  const statusInfo = statusMap[skill.status] ?? DEFAULT_STATUS_INFO;
   const isOnline = skill.status === 'online';
 
   return (

@@ -15,7 +15,6 @@ export default function Functions() {
     selectedProviderId,
     loading,
     fetchProviders,
-    fetchFunctions,
     setSelectedProviderId,
     deleteFunction,
   } = useToolStore();
@@ -25,8 +24,7 @@ export default function Functions() {
 
   useEffect(() => {
     fetchProviders();
-    fetchFunctions();
-  }, [fetchProviders, fetchFunctions]);
+  }, [fetchProviders]);
 
   const handleAdd = () => {
     setEditingFunction(null);

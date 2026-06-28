@@ -25,6 +25,9 @@ export const rollbackVersion = (skillId: string, targetVersion: string) =>
 export const exportVersion = (skillId: string, version: string) =>
   request.post('/api/skill/version/export', { skillId, version }, { responseType: 'blob' });
 
+export const downloadFile = (fileKey: string) =>
+  request.get('/api/skill/file/download', { params: { fileKey }, responseType: 'blob' });
+
 export const listImportTasks = () =>
   request.post<SkillImportTaskDTO[]>('/api/skill/provider/import/task/list', {});
 

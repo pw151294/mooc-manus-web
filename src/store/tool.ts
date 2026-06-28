@@ -39,6 +39,13 @@ export const useToolStore = create<ToolState>((set, get) => ({
     try {
       const providers = await toolApi.listProviders();
       set({ providers, loading: false });
+
+      // 若供应商列表非空且当前未选中任何供应商，自动选中第一条
+      if (providers.length > 0 && !get().selectedProviderId) {
+        const firstProviderId = providers[0].providerId;
+        set({ selectedProviderId: firstProviderId });
+        await get().fetchFunctions(firstProviderId);
+      }
     } catch (error) {
       set({ loading: false });
       throw error;
@@ -58,7 +65,12 @@ export const useToolStore = create<ToolState>((set, get) => ({
 
   setSelectedProviderId: (id) => {
     set({ selectedProviderId: id });
-    get().fetchFunctions(id || undefined);
+    if (id) {
+      get().fetchFunctions(id);
+    } else {
+      // 清空选中时不发起无参请求，直接清空函数列表
+      set({ functions: [] });
+    }
   },
 
   createProvider: async (data) => {

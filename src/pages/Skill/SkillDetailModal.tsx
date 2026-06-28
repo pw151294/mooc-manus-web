@@ -24,6 +24,8 @@ const statusMap: Record<SkillDTO['status'], { color: string; label: string }> = 
   draft: { color: 'orange', label: '草稿' },
 };
 
+const DEFAULT_STATUS_INFO = { color: 'default', label: '未知状态' };
+
 const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) => {
   const { versions, versionLoading, fetchVersions, rollbackVersion } = useSkillStore();
   const [activeTab, setActiveTab] = useState('basic');
@@ -60,11 +62,25 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
     }
   };
 
-  const handleDownloadFile = (file: SkillFileDTO) => {
-    if (file.downloadUrl) {
-      window.open(file.downloadUrl, '_blank');
-    } else {
-      message.warning('文件下载链接不可用');
+  const handleDownloadFile = async (file: SkillFileDTO) => {
+    if (!file.fileKey) {
+      message.warning('文件 fileKey 缺失,无法下载');
+      return;
+    }
+    try {
+      const blob = (await skillApi.downloadFile(file.fileKey)) as unknown as Blob;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      // 文件名优先取 path 的最后一段,兜底用 fileKey 最后一段
+      const fallbackName = file.fileKey.split('/').pop() || 'download';
+      a.download = file.path ? file.path.split('/').pop() || fallbackName : fallbackName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      message.error('文件下载失败');
     }
   };
 
@@ -119,8 +135,9 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
   const fileColumns: TableProps<SkillFileDTO>['columns'] = [
     {
       title: '文件名',
-      dataIndex: 'filename',
-      key: 'filename',
+      dataIndex: 'path',
+      key: 'path',
+      ellipsis: true,
     },
     {
       title: '大小(字节)',
@@ -157,7 +174,9 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
           <Descriptions.Item label="名称">{skill.skillName}</Descriptions.Item>
           <Descriptions.Item label="Provider">{skill.providerName}</Descriptions.Item>
           <Descriptions.Item label="状态">
-            <Tag color={statusMap[skill.status].color}>{statusMap[skill.status].label}</Tag>
+            <Tag color={(statusMap[skill.status] ?? DEFAULT_STATUS_INFO).color}>
+              {(statusMap[skill.status] ?? DEFAULT_STATUS_INFO).label}
+            </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="当前版本">{skill.latestVersion?.version || '-'}</Descriptions.Item>
           <Descriptions.Item label="版本数量">{skill.versionCount}</Descriptions.Item>
@@ -186,7 +205,7 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
       label: '文件列表',
       children: (
         <Table
-          rowKey="filename"
+          rowKey="fileKey"
           size="small"
           loading={versionLoading}
           columns={fileColumns}
