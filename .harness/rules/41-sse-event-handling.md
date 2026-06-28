@@ -12,7 +12,7 @@ mooc-manus-web 通过 `src/api/sse.ts` 内的 `SSEClient` 类与后端建立 SSE
 1. **禁止直接 `new EventSource(...)`**
    - 浏览器原生 `EventSource` 不支持 POST 与自定义 header，与后端 chat 接口（POST + body）不兼容
    - 必须通过 `import SSEClient from '@/api/sse'` 复用既有客户端
-   - 当前代码库未出现 `new EventSource`；新增代码不得引入
+   - 详见 §现状基线；新增代码不得引入
    - ESLint 自定义规则 `no-direct-event-source`（plan 要点）当前未实现；新增前请先开 ADR 评估对 `eslint.config.js` 的影响，过渡期靠 PR review + 上述 `grep` 静态检查兜底。
 
 2. **禁止在 `src/api/sse.ts` 之外手写 SSE 帧解析**
@@ -20,7 +20,7 @@ mooc-manus-web 通过 `src/api/sse.ts` 内的 `SSEClient` 类与后端建立 SSE
    - 业务侧只关心 `onEvent(type, data)` 回调，不得自己 `fetch` 后再 split 文本流
 
 3. **禁止订阅未在 `src/types/sse.ts` 声明的 `SSEEventType`**
-   - 当前已声明 11 种：`message` / `message_end` / `tool_call_start` / `tool_call_complete` / `tool_call_fail` / `error` / `done` / `title` / `plan_create_success` / `step_start` / `step_complete`
+   - 前端已声明事件类型与覆盖率详见 §现状基线
    - `SSEClient.dispatchFrame` 用 `KNOWN_EVENT_TYPE_SET` 主动过滤未知事件——新增类型必须同步改 `KNOWN_EVENT_TYPES` 与 `SSEEventType` 联合
    - 后端 R-20 列出 16 种事件，前端尚缺 `plan_update_success` / `plan_update_failed` / `plan_completed` / `step_fail` / `wait`；新增对应业务时同步补齐两侧
 
@@ -61,7 +61,7 @@ mooc-manus-web 通过 `src/api/sse.ts` 内的 `SSEClient` 类与后端建立 SSE
    - 并发任务：store 内 `sseClients: Map<string, SSEClient>`，每个 taskId 一个实例；订阅前 `if (sseClients.has(id)) return`
 
 4. **payload 校验**
-   - 当前项目**未使用 zod**（package.json 无该依赖），事件 payload 类型靠 TS 联合 + 业务侧 `as unknown as XxxEvent` 断言
+   - 项目当前未依赖 zod（详见 §现状基线），事件 payload 类型靠 TS 联合 + 业务侧 `as unknown as XxxEvent` 断言
    - **不要在本规则范围内强行引入 zod**；如确需运行时校验，先开 ADR 评估对包体与构建链路的影响
    - 在补齐 zod 之前，新增事件类型必须：(a) 写明 `interface XxxEventData extends BaseEventData`；(b) 在 `onEvent` 入口对必填字段做手动 `if (!data.xxx) return` 守卫，避免 undefined 渗透
 
@@ -76,6 +76,17 @@ mooc-manus-web 通过 `src/api/sse.ts` 内的 `SSEClient` 类与后端建立 SSE
 - 检测到组件级 SSE 用法缺 `useEffect` 清理 → 补 cleanup 函数
 - 用户要求"加 SSE 自动重连" → 引用本规则 §禁止5 解释为何不做，并说明可以在 `onError` 提供"重连"按钮交给用户触发
 - 用户要求"加 zod 校验" → 引导先开 ADR；不在本 rule 范围内私自添加依赖
+
+## 现状基线
+
+截至当前 commit（`cbfe109`，2026-06-28）：
+- `grep -rn "new EventSource" src/` → 0 命中（全部走 `SSEClient`）
+- `grep -rn "fetch.*text/event-stream" src/` → 仅出现在 `src/api/sse.ts`
+- `src/types/sse.ts` 已声明 11 种 `SSEEventType`：`message` / `message_end` / `tool_call_start` / `tool_call_complete` / `tool_call_fail` / `error` / `done` / `title` / `plan_create_success` / `step_start` / `step_complete`
+- 后端 R-20 列出 16 种事件，前端尚缺 5 种：`plan_update_success` / `plan_update_failed` / `plan_completed` / `step_fail` / `wait`
+- `package.json` 未依赖 `zod`，payload 运行时校验靠 TS 联合 + 业务侧手动守卫
+- 无 ESLint 自定义规则 `no-direct-event-source`；纪律由 PR review + `grep` 兜底
+- 已落地两类生命周期管理：单实例 `useRef<SSEClient>`（`src/pages/Agent/index.tsx`）与并发 `Map<taskId, SSEClient>`（`src/store/skill.ts`）
 
 ## 可验证性
 

@@ -16,7 +16,7 @@ mooc-manus-web 采用 React 19 + Vite + TypeScript + Ant Design + Zustand 技术
 
 2. **禁止自定义 hook 不以 `use` 开头命名**
    - 任何返回值依赖 React 状态/副作用的工具函数必须命名 `useXxx`，否则视为普通工具
-   - `src/utils/` 与 `src/hooks/` 内的导出必须遵守该边界（当前 `src/hooks/` 为空，新增 hook 一律落到此目录）
+   - `src/utils/` 与 `src/hooks/` 内的导出必须遵守该边界（`src/hooks/` 状态详见 §现状基线，新增 hook 一律落到此目录）
 
 3. **禁止在多页面共享状态时绕过 Zustand**
    - 跨页面 / 跨组件树共享业务状态（Agent 会话、Skill 列表、Tool 装配、AppConfig）必须放在 `src/store/{agent,skill,tool,appConfig}.ts` 对应 store
@@ -44,10 +44,10 @@ mooc-manus-web 采用 React 19 + Vite + TypeScript + Ant Design + Zustand 技术
    │   └── <SubComponent>.tsx    # 同级拆分子组件
    ├── store/<domain>.ts         # Zustand store（每个业务域一份）
    ├── types/<domain>.ts         # TS 类型定义（与后端 DTO 对齐）
-   ├── hooks/                    # 自定义 hook（当前为空，新增放此处）
+   ├── hooks/                    # 自定义 hook（状态详见 §现状基线）
    ├── router/index.tsx          # React Router 路由表
-   ├── utils/                    # 纯函数工具（当前为空）
-   └── constants/                # 常量（当前为空）
+   ├── utils/                    # 纯函数工具（状态详见 §现状基线）
+   └── constants/                # 常量（状态详见 §现状基线）
    ```
 
    - 新增页面 → 落 `src/pages/<Feature>/`，入口文件名 `index.tsx`，子组件平铺到同目录
@@ -76,6 +76,16 @@ mooc-manus-web 采用 React 19 + Vite + TypeScript + Ant Design + Zustand 技术
 - 检测到"自造 Modal / Form / Table" → 引导使用 antd 对应组件
 - 用户问"放哪里" → 引用本规则的目录结构图，不要凭空创造新约定
 - 若用户坚持 `<Feature>/{index.tsx, hooks.ts, types.ts}` 三件套 → 说明项目当前未采用该形态，需先开 ADR 统一全仓
+
+## 现状基线
+
+截至当前 commit（`cbfe109`，2026-06-28）：
+- `src/hooks/` → 空目录（0 文件）；新增自定义 hook 一律落于此处
+- `src/utils/` → 空目录（0 文件）；新增纯函数工具落于此处
+- `src/constants/` → 空目录（0 文件）；新增常量落于此处
+- `grep -rn "createContext" src/` → 0 命中（业务状态全部走 Zustand store）
+- `src/store/` 已落地：`agent.ts` / `skill.ts` / `tool.ts` / `appConfig.ts` 四个业务域
+- 页面目录统一 `src/pages/<Feature>/index.tsx + 平铺子组件` 形态；未出现 `{index.tsx, hooks.ts, types.ts}` 三件套
 
 ## 可验证性
 

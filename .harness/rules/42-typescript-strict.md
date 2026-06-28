@@ -12,7 +12,7 @@ mooc-manus-web 使用 TypeScript ~6.0.2，配置入口 `tsconfig.app.json`。本
 1. **禁止使用 `any` 类型**
    - 不得显式标注 `: any` / `as any` / `Array<any>` / `Record<string, any>`
    - 不得用 `// @ts-ignore` 静默错误——必须用 `// @ts-expect-error <reason>` 并写明原因（如三方库 d.ts 缺失）
-   - 现状基线：`grep -rn ": any\|as any\|<any>" src/` 当前为零；新增违例视为回退
+   - 详见 §现状基线，新增违例视为回退
 
 2. **禁止用 `unknown` 后立即类型断言**
    - `JSON.parse` / `fetch` 返回值用 `unknown` 接收后必须 narrow（typeof / instanceof / 用户自定义 type guard），不得 `as XxxDTO` 一步到位
@@ -71,10 +71,20 @@ mooc-manus-web 使用 TypeScript ~6.0.2，配置入口 `tsconfig.app.json`。本
 - 用户要求"开 strict mode" → 先用 `tsc -b --strict` 抽样跑现存代码，统计待修点，再开 ADR
 - 用户要求"加 zod" → 先开 ADR，本 rule 不直接放行
 
+## 现状基线
+
+截至当前 commit（`cbfe109`，2026-06-28）：
+- `grep -rn ": any\|as any\|<any>" src/` → 0 命中
+- `grep -rn "@ts-ignore" src/` → 0 命中
+- `grep -rn "@ts-nocheck" src/` → 0 命中
+- `tsconfig.app.json` 未开启 `"strict": true`（仅启用 `noUnusedLocals` / `noUnusedParameters` / `noFallthroughCasesInSwitch` / `erasableSyntaxOnly` / `verbatimModuleSyntax`）
+- `package.json` 未依赖 `zod`，外部输入运行时校验靠 axios 拦截器 + 业务侧手动守卫
+- ESLint `@typescript-eslint/no-explicit-any` 未配置为 error
+
 ## 可验证性
 
 - 编译：`npm run build` 内含 `tsc -b`，任何 `any` 隐式推导会触发现有 lint
-- ESLint：`@typescript-eslint/no-explicit-any` 应在配置中开启为 error；当前未显式开启，新增 rule 时同步补
+- ESLint：`@typescript-eslint/no-explicit-any` 当前未开启为 error；启用前需先开 ADR 评估对存量代码影响，过渡期靠 PR review + 上述 `grep` 静态检查兜底
 - 静态检查：
   - `grep -rn ": any\|as any" src/ --include="*.ts" --include="*.tsx"` 应为空
   - `grep -rn "@ts-ignore" src/` 应为空（全部用 `@ts-expect-error`）
