@@ -2,7 +2,7 @@
  * Agent 左侧能力装配面板
  */
 import type { FC } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Card,
   Select,
@@ -19,6 +19,8 @@ import { useAppConfigStore } from '@/store/appConfig';
 import { useToolStore } from '@/store/tool';
 import { useSkillStore } from '@/store/skill';
 import { useAgentStore } from '@/store/agent';
+import * as skillApi from '@/api/modules/skill';
+import type { SkillVersionDTO } from '@/types/skill';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -38,6 +40,22 @@ const ConfigPanel: FC = () => {
     setSelectedSkills,
     setSystemPrompt,
   } = useAgentStore();
+
+  // 按 skillId 缓存版本列表(useSkillStore.versions 是单例,无法同时承载多个 skill)
+  const [versionsBySkill, setVersionsBySkill] = useState<Record<string, SkillVersionDTO[]>>({});
+
+  const loadSkillVersions = async (skillId: string): Promise<SkillVersionDTO[]> => {
+    if (versionsBySkill[skillId]) return versionsBySkill[skillId];
+    try {
+      const versions = await skillApi.listVersions(skillId);
+      setVersionsBySkill((prev) => ({ ...prev, [skillId]: versions }));
+      return versions;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '未知错误';
+      message.error(`加载 Skill 版本列表失败: ${msg}`);
+      return [];
+    }
+  };
 
   // 初始化加载数据
   useEffect(() => {
@@ -72,14 +90,21 @@ const ConfigPanel: FC = () => {
     setSelectedTools(tools);
   };
 
-  const handleSkillToggle = (skillId: string, checked: boolean) => {
+  const handleSkillToggle = async (skillId: string, checked: boolean) => {
     if (checked) {
       const skill = skills.find((s) => s.skillId === skillId);
-      if (skill) {
-        setSelectedSkills([
-          ...selectedSkills,
-          { skill, version: skill.latestVersion?.version || 'v1.0.0' },
-        ]);
+      if (!skill) return;
+      // 先按已有数据(latestVersion)落选,UI 立即响应;版本列表异步加载完毕再校准
+      const fallbackVersion = skill.latestVersion?.version || '';
+      setSelectedSkills([...selectedSkills, { skill, version: fallbackVersion }]);
+      const versions = await loadSkillVersions(skillId);
+      // 列表按最新在前(与 SkillDetailModal 行为一致),默认选首个真实版本
+      const initialVersion = versions[0]?.version || fallbackVersion;
+      if (initialVersion && initialVersion !== fallbackVersion) {
+        const curr = useAgentStore.getState().selectedSkills;
+        setSelectedSkills(
+          curr.map((s) => (s.skill.skillId === skillId ? { ...s, version: initialVersion } : s))
+        );
       }
     } else {
       setSelectedSkills(selectedSkills.filter((s) => s.skill.skillId !== skillId));
@@ -175,7 +200,14 @@ const ConfigPanel: FC = () => {
               skills.map((skill) => {
                 const isChecked = selectedSkillIds.includes(skill.skillId);
                 const currentSelected = selectedSkills.find((s) => s.skill.skillId === skill.skillId);
-                const defaultVersion = skill.latestVersion?.version || 'v1.0.0';
+                // 优先用缓存的完整版本列表;未加载完时退化为 latestVersion 单项
+                const cachedVersions = versionsBySkill[skill.skillId];
+                const versionOptions =
+                  cachedVersions && cachedVersions.length > 0
+                    ? cachedVersions.map((v) => ({ label: v.version, value: v.version }))
+                    : skill.latestVersion
+                    ? [{ label: skill.latestVersion.version, value: skill.latestVersion.version }]
+                    : [];
                 return (
                   <div
                     key={skill.skillId}
@@ -197,12 +229,7 @@ const ConfigPanel: FC = () => {
                         style={{ width: 90, marginLeft: 4 }}
                         value={currentSelected?.version}
                         onChange={(v) => handleSkillVersionChange(skill.skillId, v)}
-                        options={[
-                          {
-                            label: defaultVersion,
-                            value: defaultVersion,
-                          },
-                        ]}
+                        options={versionOptions}
                       />
                     )}
                   </div>
