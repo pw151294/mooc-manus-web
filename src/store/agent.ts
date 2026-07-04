@@ -14,6 +14,7 @@ interface AgentState {
   selectedTools: ToolFunctionDTO[];
   selectedSkills: { skill: SkillDTO; version: string }[];
   systemPrompt: string;
+  planMode: boolean; // 规划模式开关
 
   // 对话状态
   messages: Message[];
@@ -25,6 +26,7 @@ interface AgentState {
   setSelectedTools: (tools: ToolFunctionDTO[]) => void;
   setSelectedSkills: (skills: { skill: SkillDTO; version: string }[]) => void;
   setSystemPrompt: (prompt: string) => void;
+  setPlanMode: (enabled: boolean) => void;
 
   // Actions - 对话
   addMessage: (message: Message) => void;
@@ -43,6 +45,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
   selectedTools: [],
   selectedSkills: [],
   systemPrompt: '',
+  planMode: false,
   messages: [],
   conversationId: null,
   isStreaming: false,
@@ -51,6 +54,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
   setSelectedTools: (tools) => set({ selectedTools: tools }),
   setSelectedSkills: (skills) => set({ selectedSkills: skills }),
   setSystemPrompt: (prompt) => set({ systemPrompt: prompt }),
+  setPlanMode: (enabled) => set({ planMode: enabled }),
 
   addMessage: (message) =>
     set((state) => ({

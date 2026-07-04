@@ -17,6 +17,7 @@ export const buildChatPayload = (request: ChatRequest): Record<string, unknown> 
     query: request.query,
     functionIds: request.functionIds ?? [],
     skillRefs: request.skillRefs ?? [],
+    planMode: request.planMode ?? false,
   };
   if (request.systemPrompt) {
     payload.systemPrompt = request.systemPrompt;
