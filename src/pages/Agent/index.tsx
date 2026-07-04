@@ -39,6 +39,7 @@ const AgentPage: FC = () => {
       selectedTools,
       selectedSkills,
       systemPrompt,
+      planMode,
       addMessage,
       updateLastMessage,
       addToolCallStatus,
@@ -84,6 +85,7 @@ const AgentPage: FC = () => {
       systemPrompt: systemPrompt || undefined,
       query,
       conversationId: ensureConversationId(),
+      planMode,
     });
 
     // 关闭旧连接
