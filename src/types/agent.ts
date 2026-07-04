@@ -37,4 +37,5 @@ export interface ChatRequest {
   systemPrompt?: string; // 系统提示词
   query: string; // 用户消息
   conversationId?: string; // 会话ID（可选，首次对话生成）
+  planMode?: boolean; // 规划模式：开启后自动注入持久化规划提示词
 }
