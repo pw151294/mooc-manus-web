@@ -3,7 +3,7 @@
  */
 import type { FC, KeyboardEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { Button, Input, Empty, Tag, Space, Tooltip, Typography } from 'antd';
+import { Button, Input, Empty, Tag, Space, Tooltip, Typography, Switch } from 'antd';
 import { SendOutlined, PlusOutlined } from '@ant-design/icons';
 import { useAgentStore } from '@/store/agent';
 import MessageItem from './MessageItem';
@@ -17,7 +17,7 @@ interface ChatWindowProps {
 }
 
 const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
-  const { messages, conversationId, isStreaming } = useAgentStore();
+  const { messages, conversationId, isStreaming, planMode, setPlanMode } = useAgentStore();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -119,6 +119,25 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
           background: '#fafafa',
         }}
       >
+        {/* PlanMode 开关 */}
+        <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Switch
+            checked={planMode}
+            onChange={setPlanMode}
+            disabled={isStreaming}
+            size="small"
+          />
+          <Tooltip title="开启后智能体将自动创建 Plan.md / TODO.md 并实时更新任务进度，支持会话中断后断点续跑">
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              规划模式（PlanMode）
+            </Text>
+          </Tooltip>
+          {planMode && (
+            <Tag color="blue" style={{ margin: 0 }}>
+              已开启
+            </Tag>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <TextArea
             value={input}
