@@ -7,7 +7,12 @@ import { useEffect, useRef } from 'react';
 import { message } from 'antd';
 import { v4 as uuidv4 } from 'uuid';
 import SSEClient from '@/api/sse';
-import { buildChatPayload, getChatUrl } from '@/api/modules/agent';
+import {
+  buildChatPayload,
+  getChatUrl,
+  stopConversation,
+  stopCurrentMessage,
+} from '@/api/modules/agent';
 import { useAgentStore } from '@/store/agent';
 import type { MessageEventData, ToolEventData, ErrorEventData, TitleEventData } from '@/types/sse';
 import ConfigPanel from './ConfigPanel';
@@ -25,12 +30,38 @@ const AgentPage: FC = () => {
     };
   }, []);
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    const oldConvId = useAgentStore.getState().conversationId;
     sseClientRef.current?.close();
     sseClientRef.current = null;
     accumulatedRef.current = '';
+    // conversationId 尚未生成时（首次进入未发消息）短路，避免无意义的 HTTP 往返
+    if (oldConvId) {
+      try {
+        await stopConversation(oldConvId);
+      } catch {
+        // request 拦截器已弹错，这里静默继续走本地重置
+      }
+    }
     useAgentStore.getState().resetConversation();
     message.success('已创建新会话');
+  };
+
+  const handleStopMessage = async () => {
+    const mid = useAgentStore.getState().currentMessageId;
+    if (!mid) return;
+    try {
+      await stopCurrentMessage(mid);
+    } catch {
+      // 拦截器已弹错，继续做本地清理避免 UI 卡在 streaming 态
+    }
+    sseClientRef.current?.close();
+    sseClientRef.current = null;
+    const store = useAgentStore.getState();
+    store.abortToolCallsAsFailed();
+    store.stopStreaming();
+    store.setCurrentMessageId(null);
+    message.info('已停止本条对话');
   };
 
   const handleSendMessage = (query: string) => {
@@ -98,6 +129,12 @@ const AgentPage: FC = () => {
         { url: getChatUrl(), method: 'POST', body: payload },
         {
           onEvent: (type, data) => {
+            // 首次拿到 messageId 就写入 store，供"停止本条对话"按钮使用
+            // 后端 BaseEvent 已经把 messageId 打到每条 SSE payload 上
+            const eventMessageId = (data as { messageId?: string })?.messageId;
+            if (eventMessageId && useAgentStore.getState().currentMessageId !== eventMessageId) {
+              useAgentStore.getState().setCurrentMessageId(eventMessageId);
+            }
             switch (type) {
               case 'message': {
                 const msgData = data as MessageEventData;
@@ -147,6 +184,7 @@ const AgentPage: FC = () => {
               }
               case 'done':
                 stopStreaming();
+                useAgentStore.getState().setCurrentMessageId(null);
                 break;
               default:
                 break;
@@ -155,9 +193,11 @@ const AgentPage: FC = () => {
           onError: () => {
             message.error('连接中断');
             stopStreaming();
+            useAgentStore.getState().setCurrentMessageId(null);
           },
           onComplete: () => {
             stopStreaming();
+            useAgentStore.getState().setCurrentMessageId(null);
           },
         }
       );
@@ -184,7 +224,7 @@ const AgentPage: FC = () => {
         }}
       >
         <ConfigPanel />
-        <ChatWindow onSend={handleSendMessage} onReset={handleReset} />
+        <ChatWindow onSend={handleSendMessage} onReset={handleReset} onStop={handleStopMessage} />
       </div>
     </>
   );

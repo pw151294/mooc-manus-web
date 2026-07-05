@@ -20,6 +20,9 @@ interface AgentState {
   messages: Message[];
   conversationId: string | null;
   isStreaming: boolean;
+  // 当前正在流式输出的 messageId，用于"停止本条对话"按钮
+  // 从 SSE 首个事件的 payload 里抓取，done/error/reset 时清空
+  currentMessageId: string | null;
 
   // Actions - 能力装配
   setSelectedConfig: (config: AppConfigDTO | null) => void;
@@ -38,6 +41,9 @@ interface AgentState {
   stopStreaming: () => void;
   resetConversation: () => void;
   ensureConversationId: () => string;
+  setCurrentMessageId: (mid: string | null) => void;
+  // 用户主动"停止"时把 status='calling' 的工具卡片翻成 failed，避免残留 loading 态
+  abortToolCallsAsFailed: () => void;
 }
 
 export const useAgentStore = create<AgentState>((set, get) => ({
@@ -49,6 +55,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
   messages: [],
   conversationId: null,
   isStreaming: false,
+  currentMessageId: null,
 
   setSelectedConfig: (config) => set({ selectedConfig: config }),
   setSelectedTools: (tools) => set({ selectedTools: tools }),
@@ -115,6 +122,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
       messages: [],
       conversationId: null,
       isStreaming: false,
+      currentMessageId: null,
     }),
 
   ensureConversationId: () => {
@@ -124,4 +132,24 @@ export const useAgentStore = create<AgentState>((set, get) => ({
     set({ conversationId: newId });
     return newId;
   },
+
+  setCurrentMessageId: (mid) => set({ currentMessageId: mid }),
+
+  abortToolCallsAsFailed: () =>
+    set((state) => {
+      if (state.messages.length === 0) return state;
+      const lastIdx = state.messages.length - 1;
+      const messages = state.messages.map((msg, idx) => {
+        if (idx !== lastIdx || !msg.toolCalls) return msg;
+        return {
+          ...msg,
+          toolCalls: msg.toolCalls.map((tc) =>
+            tc.status === 'calling'
+              ? { ...tc, status: 'failed' as const, result: '用户已停止' }
+              : tc
+          ),
+        };
+      });
+      return { messages };
+    }),
 }));

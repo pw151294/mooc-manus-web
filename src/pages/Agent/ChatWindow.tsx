@@ -3,8 +3,8 @@
  */
 import type { FC, KeyboardEvent } from 'react';
 import { useEffect, useState } from 'react';
-import { Button, Input, Empty, Tag, Space, Tooltip, Typography, Switch } from 'antd';
-import { SendOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Input, Empty, Tag, Tooltip, Typography, Switch } from 'antd';
+import { SendOutlined, PlusOutlined, StopOutlined } from '@ant-design/icons';
 import { useAgentStore } from '@/store/agent';
 import { useStickToBottom } from '@/hooks/useStickToBottom';
 import MessageItem from './MessageItem';
@@ -14,10 +14,11 @@ const { Text } = Typography;
 
 interface ChatWindowProps {
   onSend: (query: string) => void;
-  onReset: () => void;
+  onReset: () => Promise<void> | void;
+  onStop: () => Promise<void> | void;
 }
 
-const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
+const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset, onStop }) => {
   const { messages, conversationId, isStreaming, planMode, setPlanMode } = useAgentStore();
   const [input, setInput] = useState('');
   const { containerRef, bottomAnchorRef, scrollToBottom, forcePin } =
@@ -69,21 +70,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
           background: '#fafafa',
         }}
       >
-        <Space>
-          <Text strong>当前会话</Text>
-          {conversationId ? (
-            <Tooltip title={conversationId}>
-              <Tag
-                color="blue"
-                style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}
-              >
-                {conversationId.slice(0, 8)}...
-              </Tag>
-            </Tooltip>
-          ) : (
-            <Tag>未开始</Tag>
-          )}
-        </Space>
+        <Text strong>当前会话</Text>
         <Button icon={<PlusOutlined />} onClick={onReset} disabled={isStreaming}>
           新建会话
         </Button>
@@ -127,12 +114,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
       >
         {/* PlanMode 开关 */}
         <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Switch
-            checked={planMode}
-            onChange={setPlanMode}
-            disabled={isStreaming}
-            size="small"
-          />
+          <Switch checked={planMode} onChange={setPlanMode} disabled={isStreaming} size="small" />
           <Tooltip title="开启后智能体将自动创建 Plan.md / TODO.md 并实时更新任务进度，支持会话中断后断点续跑">
             <Text type="secondary" style={{ fontSize: 12 }}>
               规划模式（PlanMode）
@@ -153,6 +135,11 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
             autoSize={{ minRows: 4, maxRows: 8 }}
             disabled={isStreaming}
           />
+          {isStreaming && (
+            <Button danger icon={<StopOutlined />} onClick={onStop} style={{ height: 'auto' }}>
+              停止
+            </Button>
+          )}
           <Button
             type="primary"
             icon={<SendOutlined />}
