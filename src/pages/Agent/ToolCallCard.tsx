@@ -3,7 +3,7 @@
  */
 import type { FC } from 'react';
 import { useState } from 'react';
-import { Card, Tag, Collapse, Typography } from 'antd';
+import { Button, Card, Tag, Typography } from 'antd';
 import { CaretRightOutlined } from '@ant-design/icons';
 import type { ToolCallStatus } from '@/types/agent';
 
@@ -14,7 +14,7 @@ interface ToolCallCardProps {
 }
 
 const ToolCallCard: FC<ToolCallCardProps> = ({ toolCall }) => {
-  const [activeKey, setActiveKey] = useState<string[]>([]);
+  const [expanded, setExpanded] = useState(false);
 
   const statusConfig = {
     calling: { color: 'processing', text: '调用中' },
@@ -40,6 +40,8 @@ const ToolCallCard: FC<ToolCallCardProps> = ({ toolCall }) => {
     }
   };
 
+  const hasDetail = toolCall.functionArgs !== undefined || toolCall.result !== undefined;
+
   return (
     <Card
       size="small"
@@ -48,78 +50,86 @@ const ToolCallCard: FC<ToolCallCardProps> = ({ toolCall }) => {
         background: '#f8f8f8',
         border: '1px solid #e8e8e8',
       }}
-      styles={{ body: { padding: '8px 12px' } }}
+      styles={{ body: { padding: '6px 10px' } }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <Tag color={status.color}>{status.text}</Tag>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          marginBottom: expanded ? 6 : 0,
+        }}
+      >
+        <Tag color={status.color} style={{ margin: 0 }}>
+          {status.text}
+        </Tag>
         <Text strong style={{ fontSize: 12 }}>
           {toolCall.toolName}
         </Text>
         <Text type="secondary" style={{ fontSize: 12 }}>
           · {toolCall.functionName}
         </Text>
+        <div style={{ flex: 1 }} />
+        {hasDetail && (
+          <Button
+            type="text"
+            size="small"
+            onClick={() => setExpanded((v) => !v)}
+            icon={<CaretRightOutlined rotate={expanded ? 90 : 0} />}
+            style={{ fontSize: 12, padding: '0 6px', height: 22 }}
+          >
+            {expanded ? '收起详情' : '查看详情'}
+          </Button>
+        )}
       </div>
-      <Collapse
-        ghost
-        size="small"
-        activeKey={activeKey}
-        onChange={(keys) => setActiveKey(keys as string[])}
-        expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
-        items={[
-          {
-            key: 'detail',
-            label: <Text style={{ fontSize: 12 }}>查看详情</Text>,
-            children: (
-              <div>
-                {toolCall.functionArgs && (
-                  <div style={{ marginBottom: 8 }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      参数:
-                    </Text>
-                    <Paragraph
-                      style={{
-                        background: '#fff',
-                        padding: 8,
-                        borderRadius: 4,
-                        margin: '4px 0 0 0',
-                        fontSize: 12,
-                        maxHeight: 200,
-                        overflow: 'auto',
-                      }}
-                    >
-                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                        {formatJSON(toolCall.functionArgs)}
-                      </pre>
-                    </Paragraph>
-                  </div>
-                )}
-                {toolCall.result !== undefined && (
-                  <div>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      结果:
-                    </Text>
-                    <Paragraph
-                      style={{
-                        background: '#fff',
-                        padding: 8,
-                        borderRadius: 4,
-                        margin: '4px 0 0 0',
-                        fontSize: 12,
-                        maxHeight: 200,
-                        overflow: 'auto',
-                      }}
-                    >
-                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                        {formatJSON(toolCall.result)}
-                      </pre>
-                    </Paragraph>
-                  </div>
-                )}
-              </div>
-            ),
-          },
-        ]}
-      />
+      {expanded && hasDetail && (
+        <div>
+          {toolCall.functionArgs !== undefined && (
+            <div style={{ marginBottom: 6 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                参数:
+              </Text>
+              <Paragraph
+                style={{
+                  background: '#fff',
+                  padding: 8,
+                  borderRadius: 4,
+                  margin: '4px 0 0 0',
+                  fontSize: 12,
+                  maxHeight: 200,
+                  overflow: 'auto',
+                }}
+              >
+                <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                  {formatJSON(toolCall.functionArgs)}
+                </pre>
+              </Paragraph>
+            </div>
+          )}
+          {toolCall.result !== undefined && (
+            <div>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                结果:
+              </Text>
+              <Paragraph
+                style={{
+                  background: '#fff',
+                  padding: 8,
+                  borderRadius: 4,
+                  margin: '4px 0 0 0',
+                  fontSize: 12,
+                  maxHeight: 200,
+                  overflow: 'auto',
+                }}
+              >
+                <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                  {formatJSON(toolCall.result)}
+                </pre>
+              </Paragraph>
+            </div>
+          )}
+        </div>
+      )}
     </Card>
   );
 };
