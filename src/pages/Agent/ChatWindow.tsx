@@ -2,10 +2,11 @@
  * 对话窗口组件
  */
 import type { FC, KeyboardEvent } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Input, Empty, Tag, Space, Tooltip, Typography, Switch } from 'antd';
 import { SendOutlined, PlusOutlined } from '@ant-design/icons';
 import { useAgentStore } from '@/store/agent';
+import { useStickToBottom } from '@/hooks/useStickToBottom';
 import MessageItem from './MessageItem';
 
 const { TextArea } = Input;
@@ -19,12 +20,13 @@ interface ChatWindowProps {
 const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
   const { messages, conversationId, isStreaming, planMode, setPlanMode } = useAgentStore();
   const [input, setInput] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { containerRef, bottomAnchorRef, scrollToBottom, forcePin } =
+    useStickToBottom<HTMLDivElement>();
 
-  // 新消息到达时自动滚动到底部
+  // 会话切换/清空：强制回到底部，恢复贴底状态
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    forcePin();
+  }, [conversationId, forcePin]);
 
   const handleSend = () => {
     const trimmed = input.trim();
@@ -32,6 +34,8 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
     if (isStreaming) return;
     onSend(trimmed);
     setInput('');
+    // 发送即代表用户回到"最新交互"上下文，无条件回底并解除自主浏览锁定
+    scrollToBottom('auto');
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -87,6 +91,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
 
       {/* Messages */}
       <div
+        ref={containerRef}
         style={{
           flex: 1,
           padding: 16,
@@ -108,7 +113,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
         ) : (
           messages.map((msg) => <MessageItem key={msg.id} message={msg} />)
         )}
-        <div ref={messagesEndRef} />
+        <div ref={bottomAnchorRef} />
       </div>
 
       {/* Input */}
@@ -117,6 +122,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
           padding: 12,
           borderTop: '1px solid #e8e8e8',
           background: '#fafafa',
+          flexShrink: 0,
         }}
       >
         {/* PlanMode 开关 */}
@@ -144,7 +150,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset }) => {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="请输入消息（Enter 发送，Shift+Enter 换行）"
-            autoSize={{ minRows: 2, maxRows: 6 }}
+            autoSize={{ minRows: 4, maxRows: 8 }}
             disabled={isStreaming}
           />
           <Button
