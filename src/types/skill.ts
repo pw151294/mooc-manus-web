@@ -80,3 +80,31 @@ export interface SkillUpdateRequest {
   description?: string;
   status?: string;
 }
+
+export interface SkillFileStructure {
+  type: 'file' | 'directory';
+  path: string;
+  name: string;
+}
+
+export interface SkillDraftSaveRequest {
+  skillId?: string;
+  skillName?: string;
+  description?: string;
+  icon?: string;
+  imageUrl?: string;
+  skillFiles: SkillFileStructure[];
+  files: File[];
+}
+
+export interface SkillPublishRequest {
+  skillId?: string;
+  providerId?: string;
+  skillName?: string;
+  description?: string;
+  versionDescription?: string;
+  icon?: string;
+  imageUrl?: string;
+  skillFiles: SkillFileStructure[];
+  files: File[];
+}

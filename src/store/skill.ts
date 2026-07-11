@@ -5,6 +5,7 @@ import type {
   SkillVersionDTO,
   SkillImportTaskDTO,
   SkillImportRequest,
+  SkillFileStructure,
   ImportProgressEvent,
 } from '@/types/skill';
 import * as skillApi from '@/api/modules/skill';
@@ -30,6 +31,12 @@ interface SkillState {
   setSelectedProviderId: (id: string | null) => void;
 
   fetchSkills: (providerId?: string) => Promise<void>;
+  createSkill: (payload: {
+    skillName?: string;
+    description?: string;
+    versionDescription?: string;
+    files: File[];
+  }) => Promise<SkillDTO>;
   updateSkill: (skillId: string, data: { skillName?: string; description?: string; status?: string }) => Promise<void>;
   deleteSkill: (id: string) => Promise<void>;
   onlineSkill: (id: string) => Promise<void>;
@@ -95,6 +102,25 @@ export const useSkillStore = create<SkillState>((set, get) => ({
       set({ loading: false });
       throw error;
     }
+  },
+
+  createSkill: async ({ skillName, description, versionDescription, files }) => {
+    const formData = new FormData();
+    const skillFiles: SkillFileStructure[] = files.map((file) => ({
+      type: 'file',
+      path: file.webkitRelativePath || file.name,
+      name: file.name,
+    }));
+    formData.append('skillFiles', JSON.stringify(skillFiles));
+    if (skillName) formData.append('skillName', skillName);
+    if (description) formData.append('description', description);
+    if (versionDescription) formData.append('versionDescription', versionDescription);
+    files.forEach((file) => formData.append('files', file, file.name));
+
+    const skill = await skillApi.publishSkill(formData);
+    await get().fetchProviders();
+    await get().fetchSkills(get().selectedProviderId || undefined);
+    return skill;
   },
 
   updateSkill: async (skillId, data) => {

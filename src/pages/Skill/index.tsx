@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { FC } from 'react';
-import { Tabs, Layout, Input, Row, Col, Empty, Spin, message } from 'antd';
+import { Tabs, Layout, Input, Row, Col, Empty, Spin, Button, Space, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { useSkillStore } from '@/store/skill';
 import ProviderTree from './ProviderTree';
 import SkillCard from './SkillCard';
 import SkillDetailModal from './SkillDetailModal';
 import ImportProviderModal from './ImportProviderModal';
+import SkillCreateModal from './SkillCreateModal';
 import ImportTasks from './ImportTasks';
 import type { SkillDTO } from '@/types/skill';
 
@@ -29,6 +31,7 @@ const SkillPage: FC = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [currentSkill, setCurrentSkill] = useState<SkillDTO | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     fetchSkills();
@@ -94,19 +97,32 @@ const SkillPage: FC = () => {
         <ProviderTree onImportClick={handleImportClick} />
       </Sider>
       <Content style={{ padding: '16px', overflow: 'auto' }}>
-        <div style={{ marginBottom: '16px' }}>
-          <Search
-            placeholder="搜索 Skill 名称或描述"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            allowClear
-            style={{ width: 300 }}
-          />
-          {selectedProviderId && (
-            <span style={{ marginLeft: 16, color: '#666', fontSize: 12 }}>
-              已筛选 Provider,共 {filteredSkills.length} 条
-            </span>
-          )}
+        <div
+          style={{
+            marginBottom: '16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 16,
+          }}
+        >
+          <Space size={16}>
+            <Search
+              placeholder="搜索 Skill 名称或描述"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+              style={{ width: 300 }}
+            />
+            {selectedProviderId && (
+              <span style={{ color: '#666', fontSize: 12 }}>
+                已筛选 Provider,共 {filteredSkills.length} 条
+              </span>
+            )}
+          </Space>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+            创建 Skill
+          </Button>
         </div>
 
         <Spin spinning={loading}>
@@ -155,6 +171,8 @@ const SkillPage: FC = () => {
         onClose={() => setImportOpen(false)}
         onImportCreated={handleImportCreated}
       />
+
+      <SkillCreateModal open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   );
 };
