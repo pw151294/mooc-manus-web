@@ -34,6 +34,16 @@ export const listImportTasks = () =>
 export const createImportTask = (data: SkillImportRequest) =>
   request.post<SkillImportTaskDTO>('/api/skill/provider/import/git', data);
 
+export const draftSaveSkill = (formData: FormData) =>
+  request.post<SkillDTO>('/api/skill/draft/save', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+export const publishSkill = (formData: FormData) =>
+  request.post<SkillDTO>('/api/skill/publish', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
 export const deleteImportTask = (taskIds: string[]) =>
   request.post('/api/skill/provider/import/task/delete', { taskIds });
 
