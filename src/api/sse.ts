@@ -66,7 +66,16 @@ class SSEClient {
         }
       })
       .catch((err: unknown) => {
+        // AbortError 可能由超时或主动 close() 触发
+        // 超时时 isActive=false（已在 resetTimeout 的 setTimeout 中 close）
+        // 主动 close 时也会设 isActive=false
+        // 统一调用 onError 以触发 UI 状态清理（stopStreaming）
         if (err instanceof DOMException && err.name === 'AbortError') {
+          if (!this.isActive) {
+            // 连接已关闭（超时或主动），通知前端清理状态
+            console.warn('SSE 连接已中断');
+            handlers.onError?.(new Error('SSE 连接中断'));
+          }
           return;
         }
         console.error('SSE连接错误:', err);
