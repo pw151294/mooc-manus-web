@@ -14,6 +14,7 @@ const KNOWN_EVENT_TYPES: ReadonlyArray<SSEEventType> = [
   'tool_call_start',
   'tool_call_complete',
   'tool_call_fail',
+  'tool_call_interrupt',
   'error',
   'done',
   'title',

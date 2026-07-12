@@ -14,7 +14,13 @@ import {
   stopCurrentMessage,
 } from '@/api/modules/agent';
 import { useAgentStore } from '@/store/agent';
-import type { MessageEventData, ToolEventData, ErrorEventData, TitleEventData } from '@/types/sse';
+import type {
+  MessageEventData,
+  ToolEventData,
+  ToolInterruptEventData,
+  ErrorEventData,
+  TitleEventData,
+} from '@/types/sse';
 import ConfigPanel from './ConfigPanel';
 import ChatWindow from './ChatWindow';
 
@@ -75,6 +81,7 @@ const AgentPage: FC = () => {
       updateLastMessage,
       addToolCallStatus,
       updateToolCallStatus,
+      addInterrupt,
       startStreaming,
       stopStreaming,
       ensureConversationId,
@@ -170,6 +177,15 @@ const AgentPage: FC = () => {
                   status: 'failed',
                   result: tool.function_result,
                 });
+                break;
+              }
+              case 'tool_call_interrupt': {
+                // HITL 高危工具审批中断：追加一张 InterruptCard，等待用户 approve/reject
+                // messageId 从事件 payload 上取（BaseEvent 已透传），兜底用当前 store 内值
+                const interruptData = data as ToolInterruptEventData;
+                const mid =
+                  eventMessageId ?? useAgentStore.getState().currentMessageId ?? '';
+                addInterrupt(interruptData, mid);
                 break;
               }
               case 'error': {

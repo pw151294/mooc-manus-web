@@ -6,6 +6,7 @@ import { Avatar, Typography } from 'antd';
 import { UserOutlined, RobotOutlined } from '@ant-design/icons';
 import type { Message } from '@/types/agent';
 import ToolCallCard from './ToolCallCard';
+import InterruptCard from '@/components/InterruptCard';
 
 const { Text } = Typography;
 
@@ -14,6 +15,15 @@ interface MessageItemProps {
 }
 
 const MessageItem: FC<MessageItemProps> = ({ message }) => {
+  // HITL 高危工具审批卡片：整行铺开渲染，跟工具卡片风格保持一致
+  if (message.kind === 'interrupt') {
+    return (
+      <div style={{ marginBottom: 16 }}>
+        <InterruptCard event={message.event} />
+      </div>
+    );
+  }
+
   const isUser = message.role === 'user';
 
   return (

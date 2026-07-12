@@ -45,3 +45,33 @@ export const stopCurrentMessage = (messageId: string) =>
 // 销毁整个会话：清 memory + 清所有活跃 messageId 关联资源；保留 planDir
 export const stopConversation = (conversationId: string) =>
   request.post<StopConversationResp>('/api/agent/conversation/stop', { conversationId });
+
+// ================== HITL Resume ==================
+
+export interface ResumeAgentPayload {
+  messageId: string;
+  toolCallId: string;
+  decision: 'approve' | 'reject';
+  feedback?: string;
+}
+
+export interface ResumeAgentResult {
+  status: 'accepted' | 'already_decided' | 'not_found';
+}
+
+/**
+ * HITL Resume：向后端投递用户对高危工具调用的决策。
+ *
+ * 后端语义：
+ * - 200 accepted：决策生效
+ * - 409 already_decided：已被 timer/其他路径抢先决策
+ * - 404 not_found：pending 不存在或 toolCallId 不匹配
+ *
+ * 200/404/409 均视为业务响应而非异常（通过 validateStatus 放行），
+ * 由调用方根据 status 字段决定 UI 反馈；其余状态码继续走 request.ts 的
+ * 统一错误拦截（会弹 antd message）。
+ */
+export const resumeAgent = (payload: ResumeAgentPayload) =>
+  request.post<ResumeAgentResult>('/api/agent/resume', payload, {
+    validateStatus: (s) => s === 200 || s === 404 || s === 409,
+  });

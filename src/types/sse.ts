@@ -7,6 +7,7 @@ export type SSEEventType =
   | 'tool_call_start'
   | 'tool_call_complete'
   | 'tool_call_fail'
+  | 'tool_call_interrupt'
   | 'error'
   | 'done'
   | 'title'
@@ -43,6 +44,19 @@ export interface ToolEventData extends BaseEventData {
   status: 'calling' | 'completed' | 'failed';
 }
 
+// HITL 高危工具审批中断事件
+export interface ToolInterruptEventData extends BaseEventData {
+  type: 'tool_call_interrupt';
+  timestamp: string;
+  tool_call_id: string;
+  tool_name: string;
+  function_name: string;
+  function_args: string;
+  risk_level: 'dangerous'; // 当前后端只在 dangerous 时抛此事件
+  risk_reason: string;
+  status: 'interrupted';
+}
+
 // 错误事件
 export interface ErrorEventData extends BaseEventData {
   type: 'error';
@@ -67,6 +81,7 @@ export interface TitleEventData extends BaseEventData {
 export type SSEEventData =
   | MessageEventData
   | ToolEventData
+  | ToolInterruptEventData
   | ErrorEventData
   | DoneEventData
   | TitleEventData;
