@@ -114,7 +114,13 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset, onStop }) => {
       >
         {/* PlanMode 开关 */}
         <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Switch checked={planMode} onChange={setPlanMode} disabled={isStreaming} size="small" />
+          <Switch
+            data-testid="plan-mode-switch"
+            checked={planMode}
+            onChange={setPlanMode}
+            disabled={isStreaming}
+            size="small"
+          />
           <Tooltip title="开启后智能体将自动创建 Plan.md / TODO.md 并实时更新任务进度，支持会话中断后断点续跑">
             <Text type="secondary" style={{ fontSize: 12 }}>
               规划模式（PlanMode）
@@ -128,6 +134,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset, onStop }) => {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <TextArea
+            data-testid="chat-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -141,6 +148,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ onSend, onReset, onStop }) => {
             </Button>
           )}
           <Button
+            data-testid="send-button"
             type="primary"
             icon={<SendOutlined />}
             onClick={handleSend}

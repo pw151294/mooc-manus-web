@@ -45,6 +45,9 @@ const ToolCallCard: FC<ToolCallCardProps> = ({ toolCall }) => {
   return (
     <Card
       size="small"
+      data-testid="tool-call-card"
+      data-tool-name={toolCall.functionName}
+      data-is-subagent={String(!!toolCall.isSubagent)}
       style={{
         marginTop: 8,
         background: '#f8f8f8',
@@ -63,6 +66,11 @@ const ToolCallCard: FC<ToolCallCardProps> = ({ toolCall }) => {
         <Tag color={status.color} style={{ margin: 0 }}>
           {status.text}
         </Tag>
+        {toolCall.isSubagent && (
+          <Tag color="purple" style={{ margin: 0 }} title={toolCall.subagentTask}>
+            子智能体
+          </Tag>
+        )}
         <Text strong style={{ fontSize: 12 }}>
           {toolCall.toolName}
         </Text>

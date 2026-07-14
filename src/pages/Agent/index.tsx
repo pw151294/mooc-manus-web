@@ -160,6 +160,10 @@ const AgentPage: FC = () => {
                   functionName: tool.function_name,
                   functionArgs: tool.function_args,
                   status: 'calling',
+                  subagentId: tool.metadata?.subagent_id,
+                  isSubagent: tool.metadata?.is_subagent,
+                  subagentTask: tool.metadata?.subagent_task,
+                  subagentContext: tool.metadata?.subagent_context,
                 });
                 break;
               }

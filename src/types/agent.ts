@@ -11,6 +11,10 @@ export interface ToolCallStatus {
   functionArgs?: string;
   status: 'calling' | 'completed' | 'failed';
   result?: unknown;
+  subagentId?: string;
+  isSubagent?: boolean;
+  subagentTask?: string;
+  subagentContext?: string;
 }
 
 // 对话消息 - 普通对话（user / assistant 文本 + 工具调用）

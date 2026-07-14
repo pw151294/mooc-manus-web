@@ -32,6 +32,14 @@ export interface MessageEventData extends BaseEventData {
   attachments?: unknown[];
 }
 
+// 工具调用事件附带的 metadata（子智能体透传的场景会包含 subagent_* 字段）
+export interface ToolEventMetadata {
+  subagent_id?: string;
+  is_subagent?: boolean;
+  subagent_task?: string;
+  subagent_context?: string;
+}
+
 // 工具调用事件
 export interface ToolEventData extends BaseEventData {
   type: 'tool_call_start' | 'tool_call_complete' | 'tool_call_fail';
@@ -42,6 +50,7 @@ export interface ToolEventData extends BaseEventData {
   function_args: string;
   function_result?: unknown;
   status: 'calling' | 'completed' | 'failed';
+  metadata?: ToolEventMetadata;
 }
 
 // HITL 高危工具审批中断事件
