@@ -1,8 +1,14 @@
 import request from '../request';
-import type { SkillProviderDTO, SkillDTO, SkillVersionDTO, SkillImportTaskDTO, SkillImportRequest, SkillUpdateRequest } from '@/types/skill';
+import type {
+  SkillProviderDTO,
+  SkillDTO,
+  SkillVersionDTO,
+  SkillImportTaskDTO,
+  SkillImportRequest,
+  SkillUpdateRequest,
+} from '@/types/skill';
 
-export const listProviders = () =>
-  request.post<SkillProviderDTO[]>('/api/skill/provider/list', {});
+export const listProviders = () => request.post<SkillProviderDTO[]>('/api/skill/provider/list', {});
 
 export const deleteProvider = (id: string) =>
   request.post('/api/skill/provider/delete', { providerId: id });
@@ -10,11 +16,9 @@ export const deleteProvider = (id: string) =>
 export const listSkills = (providerId?: string) =>
   request.post<SkillDTO[]>('/api/skill/listAll', providerId ? { providerId } : {});
 
-export const deleteSkill = (id: string) =>
-  request.post('/api/skill/delete', { skillId: id });
+export const deleteSkill = (id: string) => request.post('/api/skill/delete', { skillId: id });
 
-export const updateSkill = (data: SkillUpdateRequest) =>
-  request.post('/api/skill/update', data);
+export const updateSkill = (data: SkillUpdateRequest) => request.post('/api/skill/update', data);
 
 export const listVersions = (skillId: string) =>
   request.post<SkillVersionDTO[]>('/api/skill/version/list', { skillId });
