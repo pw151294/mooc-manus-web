@@ -116,9 +116,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
         if (idx !== targetIdx || !isChatMessage(msg) || !msg.toolCalls) return msg;
         return {
           ...msg,
-          toolCalls: msg.toolCalls.map((tc) =>
-            tc.id === toolCallId ? { ...tc, ...updates } : tc
-          ),
+          toolCalls: msg.toolCalls.map((tc) => (tc.id === toolCallId ? { ...tc, ...updates } : tc)),
         };
       });
       return { messages };

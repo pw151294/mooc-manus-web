@@ -47,7 +47,10 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
 
   const handleExport = async (record: SkillVersionDTO) => {
     try {
-      const blob = (await skillApi.exportVersion(skill!.skillId, record.version)) as unknown as Blob;
+      const blob = (await skillApi.exportVersion(
+        skill!.skillId,
+        record.version
+      )) as unknown as Blob;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -178,7 +181,9 @@ const SkillDetailModal: FC<SkillDetailModalProps> = ({ skill, open, onClose }) =
               {(statusMap[skill.status] ?? DEFAULT_STATUS_INFO).label}
             </Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="当前版本">{skill.latestVersion?.version || '-'}</Descriptions.Item>
+          <Descriptions.Item label="当前版本">
+            {skill.latestVersion?.version || '-'}
+          </Descriptions.Item>
           <Descriptions.Item label="版本数量">{skill.versionCount}</Descriptions.Item>
           <Descriptions.Item label="描述">{skill.description || '-'}</Descriptions.Item>
           <Descriptions.Item label="创建时间">{skill.createdAt}</Descriptions.Item>
