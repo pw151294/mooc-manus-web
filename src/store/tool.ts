@@ -79,9 +79,7 @@ export const useToolStore = create<ToolState>((set, get) => ({
         set({ functions: [], loading: false });
         return;
       }
-      const results = await Promise.all(
-        providers.map((p) => toolApi.listFunctions(p.providerId))
-      );
+      const results = await Promise.all(providers.map((p) => toolApi.listFunctions(p.providerId)));
       set({ functions: results.flat(), loading: false });
     } catch (error) {
       set({ loading: false });
