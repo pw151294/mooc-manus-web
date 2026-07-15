@@ -5,6 +5,7 @@ import AppConfigPage from '@/pages/AppConfig';
 import ToolProvidersPage from '@/pages/Tool/Providers';
 import ToolFunctionsPage from '@/pages/Tool/Functions';
 import SkillPage from '@/pages/Skill';
+import TracePage from '@/pages/Trace';
 
 const router = createBrowserRouter([
   {
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
       {
         path: 'skills',
         element: <SkillPage />,
+      },
+      {
+        path: 'traces',
+        element: <TracePage />,
       },
     ],
   },

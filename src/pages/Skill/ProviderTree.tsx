@@ -17,18 +17,21 @@ const ProviderTree: FC<ProviderTreeProps> = ({ onImportClick }) => {
     fetchProviders();
   }, [fetchProviders]);
 
-  const treeData = useMemo(() => [
-    {
-      title: `Provider列表 (${providers.length})`,
-      key: 'all',
-      selectable: false,
-      children: providers.map((p) => ({
-        title: `${p.providerName} (${p.skillCount})`,
-        key: p.skillProviderId,
-        isLeaf: true,
-      })),
-    },
-  ], [providers]);
+  const treeData = useMemo(
+    () => [
+      {
+        title: `Provider列表 (${providers.length})`,
+        key: 'all',
+        selectable: false,
+        children: providers.map((p) => ({
+          title: `${p.providerName} (${p.skillCount})`,
+          key: p.skillProviderId,
+          isLeaf: true,
+        })),
+      },
+    ],
+    [providers]
+  );
 
   const handleSelect = (keys: React.Key[]) => {
     const key = keys[0];
