@@ -34,11 +34,7 @@ const SkillCard: FC<SkillCardProps> = ({ skill, onView, onToggleStatus, onDelete
       hoverable
       title={
         <Space>
-          <Avatar
-            shape="square"
-            size="small"
-            icon={<AppstoreOutlined />}
-          />
+          <Avatar shape="square" size="small" icon={<AppstoreOutlined />} />
           <span>{skill.skillName}</span>
         </Space>
       }
