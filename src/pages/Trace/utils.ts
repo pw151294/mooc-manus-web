@@ -111,62 +111,72 @@ export function colorFor(span: SpanNode, mode: 'type' | 'heat', rootLatency: num
 }
 
 /**
- * Rectangle in flame graph layout
+ * Rectangle in flame chart timeline layout.
+ * One span per row (DFS pre-order); x/width driven by [start_time, end_time]
+ * relative to root span.
  */
 export interface FlameRect {
   span: SpanNode;
+  rowIndex: number;
+  depth: number;
   x: number;
   y: number;
   width: number;
   height: number;
-  depth: number;
 }
 
+export interface FlameLayoutOptions {
+  svgWidth: number;
+  labelColWidth: number;
+  headerHeight: number;
+  rowHeight: number;
+  rowGap: number;
+  hPadding: number;
+  minRectWidth: number;
+}
+
+export const FLAME_LAYOUT_DEFAULTS: FlameLayoutOptions = {
+  svgWidth: 0,
+  labelColWidth: 240,
+  headerHeight: 28,
+  rowHeight: 24,
+  rowGap: 2,
+  hPadding: 16,
+  minRectWidth: 2,
+};
+
 /**
- * Flatten span tree into flame graph layout (icicle style - root at top)
+ * Flatten span tree into flame chart timeline layout.
  *
- * Algorithm:
- * - Horizontal: spans positioned by start_time relative to root
- * - Vertical: row height 22px, root at top (depth 0)
- * - Margins: 16px left + 16px right
- * - Minimum width: 2px for visibility
+ * Layout rules:
+ * - Y = DFS pre-order row index (siblings sorted by start_time asc).
+ *   Every span occupies its own row — never merged with siblings.
+ * - X = fraction of root span's [start_time, end_time] window,
+ *   offset by the sticky left label column.
+ * - Row 0 sits directly under the sticky time-axis header.
  */
-export function flattenLayout(root: SpanNode, width: number): FlameRect[] {
+export function flattenLayout(root: SpanNode, options: FlameLayoutOptions): FlameRect[] {
+  const { svgWidth, labelColWidth, headerHeight, rowHeight, rowGap, hPadding, minRectWidth } =
+    options;
+
+  const timeAxisWidth = Math.max(svgWidth - labelColWidth - hPadding * 2, 0);
+  const rootDuration = Math.max(root.end_time - root.start_time, 1);
   const result: FlameRect[] = [];
-  const usableWidth = width - 32; // 16px margins on each side
-  const rootDuration = root.end_time - root.start_time;
 
   function traverse(span: SpanNode, depth: number): void {
-    // Calculate horizontal position based on start_time
-    const relativeStart = span.start_time - root.start_time;
-    const spanDuration = span.end_time - span.start_time;
+    const xRatio = (span.start_time - root.start_time) / rootDuration;
+    const widthRatio = (span.end_time - span.start_time) / rootDuration;
 
-    const xRatio = relativeStart / rootDuration;
-    const widthRatio = spanDuration / rootDuration;
+    const x = labelColWidth + hPadding + xRatio * timeAxisWidth;
+    const width = Math.max(widthRatio * timeAxisWidth, minRectWidth);
 
-    const x = xRatio * usableWidth + 16;
-    let rectWidth = widthRatio * usableWidth;
+    const rowIndex = result.length;
+    const y = headerHeight + rowIndex * rowHeight;
+    const height = rowHeight - rowGap;
 
-    // Enforce minimum width
-    if (rectWidth < 2) {
-      rectWidth = 2;
-    }
+    result.push({ span, rowIndex, depth, x, y, width, height });
 
-    const y = depth * 22;
-    const height = 22 - 2; // 2px gap
-
-    result.push({
-      span,
-      x,
-      y,
-      width: rectWidth,
-      height,
-      depth,
-    });
-
-    // Sort children by start_time before recursing
     const sortedChildren = [...span.children].sort((a, b) => a.start_time - b.start_time);
-
     for (const child of sortedChildren) {
       traverse(child, depth + 1);
     }
@@ -174,4 +184,33 @@ export function flattenLayout(root: SpanNode, width: number): FlameRect[] {
 
   traverse(root, 0);
   return result;
+}
+
+/**
+ * Time-axis tick for the sticky header. `ratio` in [0, 1], `ms` = offset from root start.
+ */
+export interface TimeTick {
+  ratio: number;
+  ms: number;
+  x: number;
+}
+
+export function buildTimeTicks(
+  root: SpanNode,
+  options: Pick<FlameLayoutOptions, 'svgWidth' | 'labelColWidth' | 'hPadding'>,
+  steps = 4
+): TimeTick[] {
+  const { svgWidth, labelColWidth, hPadding } = options;
+  const timeAxisWidth = Math.max(svgWidth - labelColWidth - hPadding * 2, 0);
+  const rootDurationMs = Math.max(root.latency_ms, (root.end_time - root.start_time) / 1_000_000);
+  const ticks: TimeTick[] = [];
+  for (let i = 0; i <= steps; i += 1) {
+    const ratio = i / steps;
+    ticks.push({
+      ratio,
+      ms: rootDurationMs * ratio,
+      x: labelColWidth + hPadding + ratio * timeAxisWidth,
+    });
+  }
+  return ticks;
 }

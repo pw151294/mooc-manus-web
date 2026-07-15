@@ -181,7 +181,7 @@ export default function TraceDetailModal({ traceId, open, onClose }: TraceDetail
           {/* Flame graph section */}
           <div
             style={{
-              flex: 4,
+              flex: 8.5,
               overflow: 'auto',
               borderBottom: '1px solid #f0f0f0',
             }}
@@ -195,7 +195,7 @@ export default function TraceDetailModal({ traceId, open, onClose }: TraceDetail
           </div>
 
           {/* Span detail section */}
-          <div style={{ flex: 6, overflow: 'auto', padding: 16 }}>
+          <div style={{ flex: 1.5, overflow: 'auto', padding: 16 }}>
             {selectedSpan && <SpanDetailPanel span={selectedSpan} />}
           </div>
         </>
