@@ -1,0 +1,4 @@
+/* src/pages/Trace/index.css */
+.trace-row-error > td {
+  background: #fff2f0 !important;
+}

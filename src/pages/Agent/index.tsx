@@ -187,8 +187,7 @@ const AgentPage: FC = () => {
                 // HITL 高危工具审批中断：追加一张 InterruptCard，等待用户 approve/reject
                 // messageId 从事件 payload 上取（BaseEvent 已透传），兜底用当前 store 内值
                 const interruptData = data as ToolInterruptEventData;
-                const mid =
-                  eventMessageId ?? useAgentStore.getState().currentMessageId ?? '';
+                const mid = eventMessageId ?? useAgentStore.getState().currentMessageId ?? '';
                 addInterrupt(interruptData, mid);
                 break;
               }
