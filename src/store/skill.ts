@@ -37,7 +37,10 @@ interface SkillState {
     versionDescription?: string;
     files: File[];
   }) => Promise<SkillDTO>;
-  updateSkill: (skillId: string, data: { skillName?: string; description?: string; status?: string }) => Promise<void>;
+  updateSkill: (
+    skillId: string,
+    data: { skillName?: string; description?: string; status?: string }
+  ) => Promise<void>;
   deleteSkill: (id: string) => Promise<void>;
   onlineSkill: (id: string) => Promise<void>;
   offlineSkill: (id: string) => Promise<void>;
@@ -213,17 +216,24 @@ export const useSkillStore = create<SkillState>((set, get) => ({
     const client = new SSEClient();
     const url = skillApi.buildImportProgressUrl(taskId);
     try {
-      client.subscribe({ url, method: 'GET' }, {
-        onEvent: (_type, data) => {
-          const event = data as unknown as ImportProgressEvent;
-          get().updateTaskProgress(taskId, event);
-          if (event.status === 'success' || event.status === 'failed') {
+      client.subscribe(
+        { url, method: 'GET' },
+        {
+          onEvent: (_type, data) => {
+            const event = data as unknown as ImportProgressEvent;
+            get().updateTaskProgress(taskId, event);
+            if (event.status === 'success' || event.status === 'failed') {
+              get().unsubscribeImportTask(taskId);
+            }
+          },
+          onError: () => {
             get().unsubscribeImportTask(taskId);
-          }
-        },
-        onError: () => { get().unsubscribeImportTask(taskId); },
-        onComplete: () => { get().unsubscribeImportTask(taskId); },
-      });
+          },
+          onComplete: () => {
+            get().unsubscribeImportTask(taskId);
+          },
+        }
+      );
       sseClients.set(taskId, client);
       set({ sseClients: new Map(sseClients) });
     } catch (error) {

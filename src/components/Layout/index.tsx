@@ -6,6 +6,7 @@ import {
   SettingOutlined,
   ToolOutlined,
   ThunderboltOutlined,
+  NodeIndexOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = AntLayout;
@@ -38,6 +39,11 @@ const Layout: FC = () => {
       key: '/skills',
       icon: <ThunderboltOutlined />,
       label: 'Skill管理',
+    },
+    {
+      key: '/traces',
+      icon: <NodeIndexOutlined />,
+      label: '会话追踪',
     },
   ];
 
