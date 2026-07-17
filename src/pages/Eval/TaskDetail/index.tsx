@@ -6,7 +6,7 @@ import type { FC } from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import { Card, Space, Empty, message } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTask, retryTask, deleteTask, getInstance } from '@/api/modules/eval';
+import { getTask, retryTask, deleteTask, getInstance, getInstanceTrace } from '@/api/modules/eval';
 import { useInstanceStore } from '@/store/evalInstance';
 import type { TaskView, InstanceView } from '@/types/eval';
 import TaskSummaryCard from './TaskSummaryCard';
@@ -106,8 +106,21 @@ const TaskDetailPage: FC = () => {
       .catch(() => {});
   };
 
-  const handleOpenTrace = (inst: InstanceView) => {
-    window.open(`/traces?traceId=${inst.trace_id}`, '_blank');
+  const handleOpenTrace = async (inst: InstanceView) => {
+    if (!inst.trace_id) {
+      message.warning('该实例尚未生成 Trace');
+      return;
+    }
+    try {
+      const { trace_id } = await getInstanceTrace(inst.id);
+      if (!trace_id) {
+        message.error('该实例尚未生成 Trace');
+        return;
+      }
+      window.open(`/traces?traceId=${trace_id}`, '_blank');
+    } catch {
+      message.error('获取 Trace 失败');
+    }
   };
 
   return (
