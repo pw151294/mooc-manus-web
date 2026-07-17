@@ -6,6 +6,9 @@ import ToolProvidersPage from '@/pages/Tool/Providers';
 import ToolFunctionsPage from '@/pages/Tool/Functions';
 import SkillPage from '@/pages/Skill';
 import TracePage from '@/pages/Trace';
+import EvalCasesPage from '@/pages/Eval/Cases';
+import EvalTasksPage from '@/pages/Eval/Tasks';
+import TaskDetailPage from '@/pages/Eval/TaskDetail';
 
 const router = createBrowserRouter([
   {
@@ -39,6 +42,18 @@ const router = createBrowserRouter([
       {
         path: 'traces',
         element: <TracePage />,
+      },
+      {
+        path: 'eval/cases',
+        element: <EvalCasesPage />,
+      },
+      {
+        path: 'eval/tasks',
+        element: <EvalTasksPage />,
+      },
+      {
+        path: 'eval/tasks/:id',
+        element: <TaskDetailPage />,
       },
     ],
   },

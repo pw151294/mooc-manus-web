@@ -7,6 +7,7 @@ import {
   ToolOutlined,
   ThunderboltOutlined,
   NodeIndexOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = AntLayout;
@@ -45,6 +46,15 @@ const Layout: FC = () => {
       icon: <NodeIndexOutlined />,
       label: '会话追踪',
     },
+    {
+      key: '/eval',
+      icon: <ExperimentOutlined />,
+      label: '评测平台',
+      children: [
+        { key: '/eval/cases', label: '用例管理' },
+        { key: '/eval/tasks', label: '任务管理' },
+      ],
+    },
   ];
 
   return (
@@ -58,7 +68,7 @@ const Layout: FC = () => {
             <Menu
               mode="inline"
               selectedKeys={[location.pathname]}
-              defaultOpenKeys={['/tools']}
+              defaultOpenKeys={['/tools', '/eval']}
               items={menuItems}
               onClick={({ key }) => navigate(key)}
               style={{ height: '100%', borderRight: 0 }}
