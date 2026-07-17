@@ -45,8 +45,8 @@ const CaseTable: FC<CaseTableProps> = ({ onView, onEdit, onDelete }) => {
       dataIndex: 'tags',
       key: 'tags',
       width: 200,
-      render: (tags: string[]) =>
-        tags.length > 0 ? (
+      render: (tags: string[] | null | undefined) =>
+        tags && tags.length > 0 ? (
           <Space wrap size="small">
             {tags.map((tag) => (
               <Tag key={tag}>{tag}</Tag>
